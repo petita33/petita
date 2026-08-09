@@ -4,6 +4,30 @@ import { sessionActive } from "@/lib/session";
 
 const TAILLE_MAX = 10 * 1024 * 1024; // 10 Mo
 
+const BLOB_ABSENT =
+  "Aucun store Vercel Blob n'est relié à ce déploiement (BLOB_READ_WRITE_TOKEN absent). " +
+  "Dans Vercel : Storage → créer/connecter un store Blob au projet, puis redéployer — " +
+  "les variables ne sont injectées que dans les déploiements créés après leur ajout.";
+
+function blobConfigure() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+}
+
+/**
+ * Consulté par le formulaire quand un envoi échoue : le SDK client remplace le
+ * corps de nos réponses d'erreur par un message générique, ce GET permet de
+ * réafficher la vraie cause.
+ */
+export async function GET() {
+  if (!(await sessionActive())) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+  return NextResponse.json({
+    pret: blobConfigure(),
+    raison: blobConfigure() ? null : BLOB_ABSENT,
+  });
+}
+
 /**
  * Délivre un jeton d'upload à l'admin connecté. Le navigateur envoie ensuite le
  * fichier directement à Vercel Blob, ce qui évite la limite de 4,5 Mo des
@@ -15,6 +39,11 @@ export async function POST(request: Request) {
   // `onBeforeGenerateToken`, seul endroit garanti avant l'émission du jeton.
   if (!(await sessionActive())) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+
+  if (!blobConfigure()) {
+    console.error(BLOB_ABSENT);
+    return NextResponse.json({ error: BLOB_ABSENT }, { status: 503 });
   }
 
   const corps = (await request.json()) as HandleUploadBody;
@@ -42,6 +71,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(reponse);
   } catch (erreur) {
+    // Tracé côté serveur : le client ne reçoit qu'un message générique du SDK.
+    console.error("Émission du jeton d'upload impossible", erreur);
     return NextResponse.json(
       { error: (erreur as Error).message },
       { status: 400 },

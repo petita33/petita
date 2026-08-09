@@ -15,6 +15,25 @@ type EnvoiEnCours = {
 };
 
 /**
+ * Le SDK client remplace le corps de nos réponses d'erreur par « Failed to
+ * retrieve the client token ». On interroge la route pour retrouver la cause.
+ */
+async function causeReelle(message: string) {
+  if (!/client token/i.test(message)) return message;
+  try {
+    const reponse = await fetch("/api/admin/upload");
+    if (reponse.status === 401) {
+      return "session expirée, reconnectez-vous puis réessayez";
+    }
+    const { raison } = (await reponse.json()) as { raison: string | null };
+    if (raison) return raison;
+  } catch {
+    // On retombe sur le message d'origine.
+  }
+  return `${message} (détail dans les logs Vercel de /api/admin/upload)`;
+}
+
+/**
  * Sélecteur de photos : compresse puis envoie chaque fichier directement à
  * Vercel Blob, et expose les URLs obtenues dans un champ caché `images`.
  */
@@ -90,9 +109,8 @@ export function ChampImages({
 
       setImages((precedentes) => [...precedentes, resultat.url]);
     } catch (cause) {
-      setErreur(
-        `« ${fichier.name} » n'a pas pu être envoyée : ${(cause as Error).message}`,
-      );
+      const detail = await causeReelle((cause as Error).message);
+      setErreur(`« ${fichier.name} » n'a pas pu être envoyée : ${detail}`);
     } finally {
       URL.revokeObjectURL(apercu);
       apercusRef.current.delete(apercu);
