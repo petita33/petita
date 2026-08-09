@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"C:\\\\Users\\\\PC Famille\\\\Documents\\\\petita\\\\public\\\\images\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\PC Famille\\\\Documents\\\\petita\\\\src\\\\components\")",
+      "Bash(gh auth *)"
+    ]
+  }
+}
