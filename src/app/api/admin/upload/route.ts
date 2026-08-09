@@ -5,12 +5,20 @@ import { sessionActive } from "@/lib/session";
 const TAILLE_MAX = 10 * 1024 * 1024; // 10 Mo
 
 const BLOB_ABSENT =
-  "Aucun store Vercel Blob n'est relié à ce déploiement (BLOB_READ_WRITE_TOKEN absent). " +
-  "Dans Vercel : Storage → créer/connecter un store Blob au projet, puis redéployer — " +
-  "les variables ne sont injectées que dans les déploiements créés après leur ajout.";
+  "BLOB_READ_WRITE_TOKEN est absent de ce déploiement. Les envois depuis le " +
+  "navigateur l'exigent : contrairement à la lecture des annonces, la signature " +
+  "d'un jeton d'upload n'accepte pas l'authentification OIDC (BLOB_STORE_ID + " +
+  "VERCEL_OIDC_TOKEN ne suffisent pas). Dans Vercel : Storage → le store Blob → " +
+  "onglet des variables → copier BLOB_READ_WRITE_TOKEN dans les variables " +
+  "d'environnement du projet, puis redéployer.";
 
-function blobConfigure() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+/**
+ * `handleUpload` passe par `getReadWriteBlobTokenFromOptionsOrEnv`, qui ne lit
+ * que BLOB_READ_WRITE_TOKEN. Ne pas élargir ce test à BLOB_STORE_ID : la
+ * requête partirait pour échouer plus loin avec un message opaque.
+ */
+function jetonUploadDisponible() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
 /**
@@ -23,8 +31,8 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   return NextResponse.json({
-    pret: blobConfigure(),
-    raison: blobConfigure() ? null : BLOB_ABSENT,
+    pret: jetonUploadDisponible(),
+    raison: jetonUploadDisponible() ? null : BLOB_ABSENT,
   });
 }
 
@@ -41,7 +49,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  if (!blobConfigure()) {
+  if (!jetonUploadDisponible()) {
     console.error(BLOB_ABSENT);
     return NextResponse.json({ error: BLOB_ABSENT }, { status: 503 });
   }
