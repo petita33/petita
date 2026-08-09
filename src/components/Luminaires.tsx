@@ -1,6 +1,7 @@
-import { PlaceholderImage } from "./PlaceholderImage";
+import type { Visuels } from "@/lib/visuels";
+import { VisuelFixe } from "./VisuelFixe";
 
-export function Luminaires() {
+export function Luminaires({ visuels }: { visuels: Visuels }) {
   return (
     <section id="luminaires" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
       <div
@@ -8,10 +9,10 @@ export function Luminaires() {
         className="grid grid-cols-1 items-center gap-8 lg:grid-cols-3 lg:gap-12"
       >
         <div className="overflow-hidden rounded-xl">
-          <PlaceholderImage
-            ratio="aspect-[3/4]"
-            alt="Suspension en verre opalin festonné restaurée à l'atelier"
-            label="opaline festonnée — 3:4"
+          <VisuelFixe
+            emplacement="luminaires-gauche"
+            visuels={visuels}
+            sizes="(min-width: 1024px) 33vw, 100vw"
           />
         </div>
         <div className="px-0 text-center lg:px-4">
@@ -25,16 +26,16 @@ export function Luminaires() {
           </p>
           <a
             href="#ventes"
-            className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-7 py-4 font-display text-lg !text-petita-cream no-underline hover:bg-petita-rose hover:!text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
+            className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-7 py-4 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
           >
             Explorez nos luminaires
           </a>
         </div>
         <div className="overflow-hidden rounded-xl">
-          <PlaceholderImage
-            ratio="aspect-[3/4]"
-            alt="Deux suspensions à câble torsadé sur fond de bois foncé"
-            label="suspensions — 3:4"
+          <VisuelFixe
+            emplacement="luminaires-droite"
+            visuels={visuels}
+            sizes="(min-width: 1024px) 33vw, 100vw"
           />
         </div>
       </div>

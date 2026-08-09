@@ -22,7 +22,7 @@ export default async function ModifierAnnonce({
         href="/admin"
         className="font-display text-sm text-petita-brown/80 no-underline hover:text-petita-brick"
       >
-        ← Toutes les annonces
+        ← Retour au tableau de bord
       </a>
       <h1 className="mb-0 mt-4 font-display text-3xl font-semibold text-petita-brick sm:text-4xl">
         Modifier l&apos;annonce

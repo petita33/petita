@@ -2,12 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { CATEGORIES, estCategorie, type Annonce } from "@/lib/annonces";
+import { after } from "next/server";
 import {
-  ecrireAnnonces,
-  lireInstantane,
-  supprimerImages,
-} from "@/lib/annonces-store";
+  CATEGORIES,
+  estCategorie,
+  hrefAnnonce,
+  type Annonce,
+} from "@/lib/annonces";
+import { ecrireAnnonces, lireInstantane } from "@/lib/annonces-store";
+import { supprimerImages } from "@/lib/blob";
+import { balayerImagesOrphelines } from "@/lib/menage";
 import {
   fermerSession,
   motDePasseValide,
@@ -26,6 +30,7 @@ const REFUS = "Session expirée. Reconnectez-vous puis réessayez.";
 const LIMITE_TITRE = 120;
 const LIMITE_DESCRIPTION = 4000;
 const LIMITE_IMAGES = 12;
+const LIMITE_LIEN = 2000;
 
 // ---------------------------------------------------------------- connexion
 
@@ -72,6 +77,28 @@ function nettoyerImages(brut: FormDataEntryValue | null): string[] {
     .slice(0, LIMITE_IMAGES);
 }
 
+/**
+ * Valide le lien vers la plateforme de vente. Seuls `http` et `https` sont
+ * acceptés : le lien devient un `href` sur le site public, et un `javascript:`
+ * ou un `data:` y serait exécutable.
+ */
+function lireLienExterne(
+  brut: FormDataEntryValue | null,
+): string | null | "invalide" {
+  const texte = String(brut ?? "").trim();
+  if (texte === "") return null;
+  if (texte.length > LIMITE_LIEN) return "invalide";
+
+  let url: URL;
+  try {
+    url = new URL(texte);
+  } catch {
+    return "invalide";
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return "invalide";
+  return url.toString();
+}
+
 function lirePrix(brut: FormDataEntryValue | null): number | null | "invalide" {
   const texte = String(brut ?? "").trim().replace(",", ".");
   if (texte === "") return null;
@@ -92,6 +119,7 @@ export async function enregistrerAnnonce(
   const categorie = String(donnees.get("categorie") ?? "");
   const images = nettoyerImages(donnees.get("images"));
   const prix = lirePrix(donnees.get("prix"));
+  const lienExterne = lireLienExterne(donnees.get("lienExterne"));
 
   if (!titre) return { erreur: "Le titre est obligatoire." };
   if (titre.length > LIMITE_TITRE) {
@@ -104,6 +132,12 @@ export async function enregistrerAnnonce(
   }
   if (!estCategorie(categorie)) return { erreur: "Emplacement invalide." };
   if (prix === "invalide") return { erreur: "Le prix doit être un nombre positif." };
+  if (lienExterne === "invalide") {
+    return {
+      erreur:
+        "Le lien vers la plateforme doit être une adresse complète commençant par https://",
+    };
+  }
   if (images.length === 0) return { erreur: "Ajoutez au moins une photo." };
 
   const maintenant = new Date().toISOString();
@@ -127,6 +161,7 @@ export async function enregistrerAnnonce(
       categorie,
       prix,
       images,
+      lienExterne,
       modifieLe: maintenant,
     };
   } else {
@@ -139,6 +174,7 @@ export async function enregistrerAnnonce(
         categorie,
         prix,
         images,
+        lienExterne,
         creeLe: maintenant,
         modifieLe: maintenant,
       },
@@ -154,8 +190,13 @@ export async function enregistrerAnnonce(
     return { erreur: `Enregistrement impossible : ${(erreur as Error).message}` };
   }
 
-  await supprimerImages(imagesADetruire);
-  rafraichir(categorie, id ? annonces.find((a) => a.id === id)?.categorie : undefined);
+  await supprimerImages(
+    imagesADetruire,
+    `photos retirées de l'annonce ${id || "(nouvelle)"}`,
+  );
+  // Ramasse au passage les photos envoyées puis abandonnées sans enregistrement.
+  after(balayerImagesOrphelines);
+  rafraichir(id || null, categorie, id ? annonces.find((a) => a.id === id)?.categorie : undefined);
   redirect("/admin");
 }
 
@@ -177,14 +218,16 @@ export async function supprimerAnnonce(donnees: FormData) {
     redirect("/admin?erreur=conflit");
   }
 
-  await supprimerImages(cible.images);
-  rafraichir(cible.categorie);
+  await supprimerImages(cible.images, `annonce supprimée ${cible.id}`);
+  after(balayerImagesOrphelines);
+  rafraichir(cible.id, cible.categorie);
   redirect("/admin");
 }
 
-/** Régénère l'admin et la (ou les) page(s) publique(s) concernée(s). */
-function rafraichir(...categories: (string | undefined)[]) {
+/** Régénère l'admin, la page de détail et la (ou les) page(s) de liste concernée(s). */
+function rafraichir(id: string | null, ...categories: (string | undefined)[]) {
   revalidatePath("/admin");
+  if (id) revalidatePath(hrefAnnonce(id));
   for (const categorie of new Set(categories)) {
     if (estCategorie(categorie)) revalidatePath(CATEGORIES[categorie].href);
   }

@@ -1,20 +1,29 @@
 import { FormulaireAnnonce } from "@/components/admin/FormulaireAnnonce";
+import { estGroupe, GROUPES } from "@/lib/annonces";
 
-export default function NouvelleAnnonce() {
+export default async function NouvelleAnnonce({
+  searchParams,
+}: {
+  searchParams: Promise<{ groupe?: string }>;
+}) {
+  const { groupe: brut } = await searchParams;
+  // Un groupe inconnu retombe sur les annonces classiques.
+  const groupe = estGroupe(brut) ? brut : "annonces";
+
   return (
     <>
       <a
         href="/admin"
         className="font-display text-sm text-petita-brown/80 no-underline hover:text-petita-brick"
       >
-        ← Toutes les annonces
+        ← Retour au tableau de bord
       </a>
       <h1 className="mb-0 mt-4 font-display text-3xl font-semibold text-petita-brick sm:text-4xl">
-        Nouvelle annonce
+        {GROUPES[groupe].creer}
       </h1>
       <div className="my-5 h-0.5 w-16 bg-petita-gold" />
 
-      <FormulaireAnnonce />
+      <FormulaireAnnonce groupe={groupe} />
     </>
   );
 }

@@ -6,35 +6,45 @@
   --color-petita-brick: #7e2b26;
   --color-petita-rose: #8e4b45;
   --color-petita-gold: #c08a2e;
+  /* L'or clair ne dépasse pas 2,7:1 sur crème ou blush : réservé aux filets,
+     bordures et aplats. Pour du texte sur fond clair, utiliser cette variante
+     (4,7:1 sur blush, 5,4:1 sur crème). */
+  --color-petita-gold-fonce: #845a10;
   --color-petita-brown: #5f4438;
 
   --font-display: var(--font-playfair);
   --font-body: var(--font-lora);
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-@media (prefers-reduced-motion: reduce) {
+/* Ces règles doivent vivre dans `@layer base` : du CSS hors couche l'emporte
+   sur TOUTE couche, donc un `a { color }` non-calqué écrase les utilitaires
+   `text-*` de Tailwind (couche `utilities`) et rend illisible le texte de tout
+   lien stylé en bouton plein (brique sur brique). */
+@layer base {
   html {
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
   }
-}
 
-body {
-  background: var(--color-petita-blush);
-}
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 
-a {
-  color: var(--color-petita-brick);
-  text-decoration-color: rgb(192 138 46 / 0.6);
-  text-underline-offset: 3px;
-}
+  body {
+    background: var(--color-petita-blush);
+  }
 
-a:hover {
-  color: var(--color-petita-rose);
-  text-decoration-color: var(--color-petita-gold);
+  a {
+    color: var(--color-petita-brick);
+    text-decoration-color: rgb(192 138 46 / 0.6);
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    color: var(--color-petita-rose);
+    text-decoration-color: var(--color-petita-gold);
+  }
 }
 
 @keyframes reveal-in {

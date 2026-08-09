@@ -2,7 +2,7 @@ import { Logo } from "./Logo";
 import { InstagramIcon } from "./InstagramIcon";
 
 const linkClasses =
-  "flex min-h-12 items-center text-[#F3DFD9] no-underline hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold";
+  "flex min-h-12 items-center text-petita-blush no-underline hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold";
 
 export function Footer() {
   return (
@@ -37,6 +37,9 @@ export function Footer() {
           <a href="#meubles" className={linkClasses}>
             Voir tous les meubles
           </a>
+          <a href="/en-cours" className={linkClasses}>
+            En cours de rénovation
+          </a>
           <a href="/apropos" className={linkClasses}>
             Notre histoire
           </a>
@@ -50,7 +53,7 @@ export function Footer() {
           <a href="#contact" className={linkClasses}>
             Conditions de vente
           </a>
-          <p className="mb-0 mt-2 text-[15px] text-[#F0D8D1]">© 2026 Atelier Petita</p>
+          <p className="mb-0 mt-2 text-[15px] text-petita-blush">© 2026 Atelier Petita</p>
         </div>
       </div>
     </footer>

@@ -1,6 +1,7 @@
-import { PlaceholderImage } from "./PlaceholderImage";
+import type { Visuels } from "@/lib/visuels";
+import { VisuelFixe } from "./VisuelFixe";
 
-export function Meubles() {
+export function Meubles({ visuels }: { visuels: Visuels }) {
   return (
     <section id="meubles" className="border-y border-petita-gold/30 bg-petita-cream">
       <div
@@ -17,26 +18,24 @@ export function Meubles() {
             chargés d'histoire…
           </p>
           <a
-            href="#ventes"
-            className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-7 py-4 font-display text-lg !text-petita-cream no-underline hover:bg-petita-rose hover:!text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
+            href="/meubles/en-vente"
+            className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-7 py-4 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
           >
             Explorez nos meubles
           </a>
         </div>
         <div className="overflow-hidden rounded-xl">
-          <PlaceholderImage
-            ratio="aspect-[4/3]"
-            tone="sand"
-            alt="Buffet Art déco en chêne clair après restauration"
-            label="buffet restauré — 4:3"
+          <VisuelFixe
+            emplacement="meubles-milieu"
+            visuels={visuels}
+            sizes="(min-width: 1024px) 33vw, 100vw"
           />
         </div>
         <div className="overflow-hidden rounded-xl">
-          <PlaceholderImage
-            ratio="aspect-[4/3]"
-            tone="sand"
-            alt="Détail d'un pochoir peint à la main sur un tiroir de commode"
-            label="détail pochoir — 4:3"
+          <VisuelFixe
+            emplacement="meubles-droite"
+            visuels={visuels}
+            sizes="(min-width: 1024px) 33vw, 100vw"
           />
         </div>
       </div>

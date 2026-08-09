@@ -8,8 +8,15 @@ import { Testimonials } from "@/components/Testimonials";
 import { Reassurance } from "@/components/Reassurance";
 import { ContactForm } from "@/components/ContactForm";
 import { Footer } from "@/components/Footer";
+import { lireVisuels } from "@/lib/visuels-store";
 
-export default function Home() {
+// Les photos fixes sont lues à chaque requête pour qu'un changement depuis
+// l'administration soit visible immédiatement.
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const visuels = await lireVisuels();
+
   return (
     <div className="overflow-x-hidden">
       <a
@@ -22,10 +29,10 @@ export default function Home() {
       <Header />
 
       <main id="contenu">
-        <Hero />
+        <Hero visuels={visuels} />
         <About />
-        <Luminaires />
-        <Meubles />
+        <Luminaires visuels={visuels} />
+        <Meubles visuels={visuels} />
         <Gallery />
         <Testimonials />
         <Reassurance />

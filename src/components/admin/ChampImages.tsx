@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { upload } from "@vercel/blob/client";
-import { compresserImage } from "./compresserImage";
+import { DOSSIER_ANNONCES } from "@/lib/annonces";
+import { envoyerImage } from "./envoyerImage";
 import { classeAide, classeErreur, classeLabel } from "./ui";
 
-const FORMATS_ACCEPTES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 const MAX_IMAGES = 12;
 
 type EnvoiEnCours = {
@@ -13,25 +12,6 @@ type EnvoiEnCours = {
   apercu: string;
   progression: number;
 };
-
-/**
- * Le SDK client remplace le corps de nos réponses d'erreur par « Failed to
- * retrieve the client token ». On interroge la route pour retrouver la cause.
- */
-async function causeReelle(message: string) {
-  if (!/client token/i.test(message)) return message;
-  try {
-    const reponse = await fetch("/api/admin/upload");
-    if (reponse.status === 401) {
-      return "session expirée, reconnectez-vous puis réessayez";
-    }
-    const { raison } = (await reponse.json()) as { raison: string | null };
-    if (raison) return raison;
-  } catch {
-    // On retombe sur le message d'origine.
-  }
-  return `${message} (détail dans les logs Vercel de /api/admin/upload)`;
-}
 
 /**
  * Sélecteur de photos : compresse puis envoie chaque fichier directement à
@@ -88,29 +68,19 @@ export function ChampImages({
     setEnvois((precedents) => [...precedents, { cle, apercu, progression: 0 }]);
 
     try {
-      const prepare = await compresserImage(fichier);
-      if (!FORMATS_ACCEPTES.includes(prepare.type)) {
-        throw new Error(
-          `format non pris en charge (${prepare.type || "inconnu"}), utilisez JPG, PNG, WebP ou AVIF`,
-        );
-      }
-
-      const resultat = await upload(`annonces/${prepare.name}`, prepare, {
-        access: "public",
-        handleUploadUrl: "/api/admin/upload",
-        contentType: prepare.type,
-        onUploadProgress: ({ percentage }) =>
-          setEnvois((precedents) =>
-            precedents.map((envoi) =>
-              envoi.cle === cle ? { ...envoi, progression: percentage } : envoi,
-            ),
+      const url = await envoyerImage(fichier, DOSSIER_ANNONCES, (progression) =>
+        setEnvois((precedents) =>
+          precedents.map((envoi) =>
+            envoi.cle === cle ? { ...envoi, progression } : envoi,
           ),
-      });
+        ),
+      );
 
-      setImages((precedentes) => [...precedentes, resultat.url]);
+      setImages((precedentes) => [...precedentes, url]);
     } catch (cause) {
-      const detail = await causeReelle((cause as Error).message);
-      setErreur(`« ${fichier.name} » n'a pas pu être envoyée : ${detail}`);
+      setErreur(
+        `« ${fichier.name} » n'a pas pu être envoyée : ${(cause as Error).message}`,
+      );
     } finally {
       URL.revokeObjectURL(apercu);
       apercusRef.current.delete(apercu);

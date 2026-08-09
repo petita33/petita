@@ -6,19 +6,19 @@ import { trierParDateDecroissante } from "@/lib/annonces";
 import { lireAnnonces } from "@/lib/annonces-store";
 
 export const metadata: Metadata = {
-  title: "Nos luminaires vendus — Atelier Petita",
+  title: "Nos meubles vendus — Atelier Petita",
   description:
-    "Galerie des luminaires anciens restaurés qui ont trouvé leur maison. Une source d'inspiration pour découvrir notre savoir-faire.",
+    "Galerie des meubles anciens restaurés qui ont trouvé leur maison. Une source d'inspiration pour découvrir notre savoir-faire.",
 };
 
 // Les annonces sont lues à chaque requête pour qu'une publication soit
 // visible immédiatement.
 export const dynamic = "force-dynamic";
 
-export default async function LuminairesVendus() {
+export default async function MeublesVendus() {
   const annonces = trierParDateDecroissante(
     (await lireAnnonces()).filter(
-      (annonce) => annonce.categorie === "luminaires-vendus",
+      (annonce) => annonce.categorie === "meubles-vendus",
     ),
   );
 
@@ -33,20 +33,20 @@ export default async function LuminairesVendus() {
             <nav aria-label="Fil d'Ariane" className="mb-6 flex items-center gap-2 font-display text-sm text-petita-brown/70">
               <a href="/" className="no-underline hover:text-petita-brick">Accueil</a>
               <span aria-hidden="true">›</span>
-              <span className="text-petita-brick">Nos luminaires vendus</span>
+              <span className="text-petita-brick">Nos meubles vendus</span>
             </nav>
             <h1 className="m-0 font-display text-4xl font-semibold text-petita-brick sm:text-5xl">
-              Nos luminaires vendus
+              Nos meubles vendus
             </h1>
             <div className="my-5 h-0.5 w-16 bg-petita-gold" />
             <p className="m-0 max-w-[52ch] text-petita-brown">
-              Ces pièces ont trouvé leur foyer. Une galerie pour s'inspirer et découvrir l'étendue de
+              Ces pièces ont trouvé leur foyer. Une galerie pour s&apos;inspirer et découvrir l&apos;étendue de
               notre travail de restauration.
             </p>
           </div>
         </div>
 
-        {/* Grille des luminaires */}
+        {/* Grille des meubles */}
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-20">
           <AnnoncesGrille
             annonces={annonces}
@@ -63,10 +63,10 @@ export default async function LuminairesVendus() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <a
-                href="/luminaires/en-vente"
+                href="/meubles/en-vente"
                 className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-8 py-3.5 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
               >
-                Voir les luminaires en vente
+                Voir les meubles en vente
               </a>
               <a
                 href="/#contact"

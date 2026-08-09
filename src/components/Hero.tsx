@@ -1,6 +1,7 @@
-import { PlaceholderImage } from "./PlaceholderImage";
+import type { Visuels } from "@/lib/visuels";
+import { VisuelFixe } from "./VisuelFixe";
 
-export function Hero() {
+export function Hero({ visuels }: { visuels: Visuels }) {
   return (
     <section
       id="accueil"
@@ -18,23 +19,24 @@ export function Hero() {
         <div className="flex flex-wrap gap-4">
           <a
             href="#luminaires"
-            className="inline-flex min-h-12 items-center rounded-md border-2 border-petita-brick bg-petita-brick px-7 py-4 font-display text-lg tracking-wide !text-petita-cream no-underline hover:border-petita-rose hover:bg-petita-rose hover:!text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
+            className="inline-flex min-h-12 items-center rounded-md border-2 border-petita-brick bg-petita-brick px-7 py-4 font-display text-lg tracking-wide text-petita-cream no-underline hover:border-petita-rose hover:bg-petita-rose hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
           >
             Découvrir nos luminaires
           </a>
           <a
             href="#meubles"
-            className="inline-flex min-h-12 items-center rounded-md border-2 border-petita-brick bg-transparent px-7 py-4 font-display text-lg tracking-wide !text-petita-brick no-underline hover:bg-petita-brick hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
+            className="inline-flex min-h-12 items-center rounded-md border-2 border-petita-brick bg-transparent px-7 py-4 font-display text-lg tracking-wide text-petita-brick no-underline hover:bg-petita-brick hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
           >
             Nos meubles restaurés
           </a>
         </div>
       </div>
       <div data-reveal className="overflow-hidden rounded-xl shadow-[0_24px_60px_rgba(126,43,38,0.18)]">
-        <PlaceholderImage
-          ratio="aspect-[5/4]"
-          alt="Photo d'ambiance : suspension en opaline allumée au-dessus d'un buffet Art déco restauré"
-          label="photo d'ambiance — 5:4"
+        <VisuelFixe
+          emplacement="accueil-ambiance"
+          visuels={visuels}
+          sizes="(min-width: 768px) 50vw, 100vw"
+          priority
         />
       </div>
     </section>

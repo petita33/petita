@@ -4,15 +4,18 @@ const TONES = {
   rose: "bg-[repeating-linear-gradient(135deg,#9E5D56_0_12px,#A96B63_12px_24px)]",
 } as const;
 
+/**
+ * Aplat décoratif tenant la place d'une photo absente : les emplacements fixes
+ * de la page d'accueil s'en servent tant qu'aucune photo n'y a été déposée, et
+ * « Nos dernières ventes » tant qu'il n'y a pas d'annonce à montrer.
+ */
 export function PlaceholderImage({
   alt,
-  label,
   ratio,
   tone = "blush",
   className = "",
 }: {
   alt: string;
-  label?: string;
   ratio: string;
   tone?: keyof typeof TONES;
   className?: string;
@@ -21,13 +24,7 @@ export function PlaceholderImage({
     <div
       role="img"
       aria-label={alt}
-      className={`${ratio} ${TONES[tone]} flex items-end justify-center p-4 transition-transform duration-700 ease-out hover:scale-[1.04] ${className}`}
-    >
-      {label ? (
-        <span className="rounded bg-petita-cream px-3 py-2 font-mono text-xs tracking-wide text-petita-brown">
-          {label}
-        </span>
-      ) : null}
-    </div>
+      className={`${ratio} ${TONES[tone]} transition-transform duration-700 ease-out hover:scale-[1.04] ${className}`}
+    />
   );
 }

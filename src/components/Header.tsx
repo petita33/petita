@@ -4,15 +4,27 @@ import { useState, useRef, useEffect } from "react";
 import { Logo } from "./Logo";
 import { InstagramIcon } from "./InstagramIcon";
 
-const LUMINAIRES_SUBMENU = [
-  { href: "/luminaires/en-vente", label: "Nos luminaires en vente" },
-  { href: "/luminaires/vendus", label: "Nos luminaires vendus" },
+const MENUS_DEROULANTS = [
+  {
+    label: "Luminaires",
+    items: [
+      { href: "/luminaires/en-vente", label: "Nos luminaires en vente" },
+      { href: "/luminaires/vendus", label: "Nos luminaires vendus" },
+    ],
+  },
+  {
+    label: "Meubles",
+    items: [
+      { href: "/meubles/en-vente", label: "Nos meubles en vente" },
+      { href: "/meubles/vendus", label: "Nos meubles vendus" },
+    ],
+  },
 ];
 
 const NAV_LINKS = [
-  { href: "#meubles", label: "Meubles" },
+  { href: "/en-cours", label: "En cours" },
   { href: "/apropos", label: "À propos" },
-  { href: "#contact", label: "Contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const navLinkClass =
@@ -20,15 +32,16 @@ const navLinkClass =
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [lumOpen, setLumOpen] = useState(false);
-  const [mobileLumOpen, setMobileLumOpen] = useState(false);
-  const lumRef = useRef<HTMLDivElement>(null);
+  // Un seul menu déroulant ouvert à la fois, repéré par son libellé.
+  const [menuDeroulant, setMenuDeroulant] = useState<string | null>(null);
+  const [accordeonMobile, setAccordeonMobile] = useState<string | null>(null);
+  const menusRef = useRef<HTMLDivElement>(null);
 
   // Fermer le dropdown au clic extérieur
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (lumRef.current && !lumRef.current.contains(e.target as Node)) {
-        setLumOpen(false);
+      if (menusRef.current && !menusRef.current.contains(e.target as Node)) {
+        setMenuDeroulant(null);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -78,40 +91,50 @@ export function Header() {
               Accueil
             </a>
 
-            {/* Luminaires avec dropdown */}
-            <div ref={lumRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setLumOpen((v) => !v)}
-                aria-expanded={lumOpen}
-                aria-haspopup="true"
-                className={`${navLinkClass} flex items-center gap-1.5`}
-              >
-                Luminaires
-                <svg
-                  viewBox="0 0 10 6"
-                  className={`h-2.5 w-2.5 shrink-0 transition-transform duration-200 ${lumOpen ? "rotate-180" : ""}`}
-                  aria-hidden="true"
-                  fill="currentColor"
-                >
-                  <path d="M0 0l5 6 5-6z" />
-                </svg>
-              </button>
+            {/* Luminaires et Meubles avec dropdown */}
+            <div ref={menusRef} className="flex items-center gap-1 lg:gap-3">
+              {MENUS_DEROULANTS.map((menu) => {
+                const ouvert = menuDeroulant === menu.label;
 
-              {lumOpen && (
-                <div className="absolute left-0 top-full z-50 mt-1.5 min-w-[240px] overflow-hidden rounded-xl border border-petita-gold/30 bg-petita-cream shadow-lg">
-                  {LUMINAIRES_SUBMENU.map((item) => (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setLumOpen(false)}
-                      className="flex min-h-11 items-center border-b border-petita-gold/15 px-5 font-display text-[15px] tracking-wide text-petita-brown no-underline last:border-b-0 hover:bg-petita-blush hover:text-petita-brick"
+                return (
+                  <div key={menu.label} className="relative">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMenuDeroulant(ouvert ? null : menu.label)
+                      }
+                      aria-expanded={ouvert}
+                      aria-haspopup="true"
+                      className={`${navLinkClass} flex items-center gap-1.5`}
                     >
-                      {item.label}
-                    </a>
-                  ))}
-                </div>
-              )}
+                      {menu.label}
+                      <svg
+                        viewBox="0 0 10 6"
+                        className={`h-2.5 w-2.5 shrink-0 transition-transform duration-200 ${ouvert ? "rotate-180" : ""}`}
+                        aria-hidden="true"
+                        fill="currentColor"
+                      >
+                        <path d="M0 0l5 6 5-6z" />
+                      </svg>
+                    </button>
+
+                    {ouvert && (
+                      <div className="absolute left-0 top-full z-50 mt-1.5 min-w-[240px] overflow-hidden rounded-xl border border-petita-gold/30 bg-petita-cream shadow-lg">
+                        {menu.items.map((item) => (
+                          <a
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMenuDeroulant(null)}
+                            className="flex min-h-11 items-center border-b border-petita-gold/15 px-5 font-display text-[15px] tracking-wide text-petita-brown no-underline last:border-b-0 hover:bg-petita-blush hover:text-petita-brick"
+                          >
+                            {item.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {NAV_LINKS.map((link) => (
@@ -129,7 +152,7 @@ export function Header() {
               target="_blank"
               rel="noopener"
               aria-label="Atelier Petita sur Instagram (nouvelle fenêtre)"
-              className="ml-1.5 flex h-12 w-12 items-center justify-center rounded-full border border-petita-gold/60 text-petita-brick no-underline hover:border-petita-gold hover:bg-petita-gold hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
+              className="ml-1.5 flex h-12 w-12 items-center justify-center rounded-full border border-petita-gold/60 text-petita-brick no-underline hover:border-petita-brick hover:bg-petita-brick hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
             >
               <InstagramIcon size={22} />
             </a>
@@ -160,41 +183,49 @@ export function Header() {
               Accueil
             </a>
 
-            {/* Luminaires accordéon mobile */}
-            <div className="border-b border-petita-gold/35">
-              <button
-                type="button"
-                onClick={() => setMobileLumOpen((v) => !v)}
-                aria-expanded={mobileLumOpen}
-                className="flex min-h-15 w-full items-center justify-between px-1.5 font-display text-2xl leading-tight text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
-              >
-                Luminaires
-                <svg
-                  viewBox="0 0 10 6"
-                  className={`h-3 w-3 shrink-0 transition-transform duration-200 ${mobileLumOpen ? "rotate-180" : ""}`}
-                  aria-hidden="true"
-                  fill="currentColor"
-                >
-                  <path d="M0 0l5 6 5-6z" />
-                </svg>
-              </button>
+            {/* Luminaires et Meubles en accordéons mobile */}
+            {MENUS_DEROULANTS.map((menu) => {
+              const ouvert = accordeonMobile === menu.label;
 
-              {mobileLumOpen && (
-                <div className="mb-2 flex flex-col gap-1 pl-4">
-                  {LUMINAIRES_SUBMENU.map((item) => (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMenuOpen(false)}
-                      className="flex min-h-12 items-center gap-3 px-1.5 font-display text-xl leading-tight text-petita-brown no-underline hover:text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
+              return (
+                <div key={menu.label} className="border-b border-petita-gold/35">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAccordeonMobile(ouvert ? null : menu.label)
+                    }
+                    aria-expanded={ouvert}
+                    className="flex min-h-15 w-full items-center justify-between px-1.5 font-display text-2xl leading-tight text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
+                  >
+                    {menu.label}
+                    <svg
+                      viewBox="0 0 10 6"
+                      className={`h-3 w-3 shrink-0 transition-transform duration-200 ${ouvert ? "rotate-180" : ""}`}
+                      aria-hidden="true"
+                      fill="currentColor"
                     >
-                      <span className="text-petita-gold text-base">—</span>
-                      {item.label}
-                    </a>
-                  ))}
+                      <path d="M0 0l5 6 5-6z" />
+                    </svg>
+                  </button>
+
+                  {ouvert && (
+                    <div className="mb-2 flex flex-col gap-1 pl-4">
+                      {menu.items.map((item) => (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMenuOpen(false)}
+                          className="flex min-h-12 items-center gap-3 px-1.5 font-display text-xl leading-tight text-petita-brown no-underline hover:text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
+                        >
+                          <span className="text-petita-gold text-base">—</span>
+                          {item.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })}
 
             {NAV_LINKS.map((link) => (
               <a

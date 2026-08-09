@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Logo } from "@/components/Logo";
+import { NavigationAdmin } from "@/components/admin/NavigationAdmin";
 import { sessionActive } from "@/lib/session";
 import { deconnexion } from "./actions";
 
@@ -56,6 +57,8 @@ export default async function AdminLayout({
           </div>
         </header>
       ) : null}
+
+      {connecte ? <NavigationAdmin /> : null}
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
         {children}

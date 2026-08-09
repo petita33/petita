@@ -6,19 +6,19 @@ import { trierParDateDecroissante } from "@/lib/annonces";
 import { lireAnnonces } from "@/lib/annonces-store";
 
 export const metadata: Metadata = {
-  title: "Nos luminaires vendus — Atelier Petita",
+  title: "Nos meubles en vente — Atelier Petita",
   description:
-    "Galerie des luminaires anciens restaurés qui ont trouvé leur maison. Une source d'inspiration pour découvrir notre savoir-faire.",
+    "Découvrez notre sélection de meubles anciens restaurés, disponibles à la vente. Pièces uniques poncées, peintes et cirées à la main.",
 };
 
 // Les annonces sont lues à chaque requête pour qu'une publication soit
 // visible immédiatement.
 export const dynamic = "force-dynamic";
 
-export default async function LuminairesVendus() {
+export default async function MeublesEnVente() {
   const annonces = trierParDateDecroissante(
     (await lireAnnonces()).filter(
-      (annonce) => annonce.categorie === "luminaires-vendus",
+      (annonce) => annonce.categorie === "meubles-en-vente",
     ),
   );
 
@@ -33,48 +33,40 @@ export default async function LuminairesVendus() {
             <nav aria-label="Fil d'Ariane" className="mb-6 flex items-center gap-2 font-display text-sm text-petita-brown/70">
               <a href="/" className="no-underline hover:text-petita-brick">Accueil</a>
               <span aria-hidden="true">›</span>
-              <span className="text-petita-brick">Nos luminaires vendus</span>
+              <span className="text-petita-brick">Nos meubles en vente</span>
             </nav>
             <h1 className="m-0 font-display text-4xl font-semibold text-petita-brick sm:text-5xl">
-              Nos luminaires vendus
+              Meuble ancien chiné en brocante, restauré et sublimé à quatre mains par l&apos;Atelier Petita — pièce unique
             </h1>
             <div className="my-5 h-0.5 w-16 bg-petita-gold" />
             <p className="m-0 max-w-[52ch] text-petita-brown">
-              Ces pièces ont trouvé leur foyer. Une galerie pour s'inspirer et découvrir l'étendue de
-              notre travail de restauration.
+              Buffets, commodes, guéridons… Du ponçage à la dernière couche de cire, nous redonnons
+              vie et modernité à des meubles chargés d&apos;histoire. Chaque pièce est restaurée entre
+              nos quatre mains, avec patience et passion.
             </p>
           </div>
         </div>
 
-        {/* Grille des luminaires */}
+        {/* Grille des meubles */}
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-20">
           <AnnoncesGrille
             annonces={annonces}
-            messageVide="La galerie des pièces vendues se remplira au fil des restaurations."
+            messageVide="Aucun meuble disponible pour le moment — de nouvelles trouvailles arrivent après chaque chine."
           />
 
-          {/* CTA vers les pièces en vente */}
           <div className="mt-16 rounded-xl border border-petita-gold/30 bg-petita-cream p-8 text-center sm:p-12">
             <h2 className="m-0 font-display text-2xl font-semibold text-petita-brick">
-              Vous avez un coup de cœur ?
+              Vous cherchez une pièce particulière ?
             </h2>
             <p className="mx-auto my-4 max-w-[48ch] text-petita-brown">
-              Découvrez nos pièces actuellement disponibles à la vente, ou contactez-nous pour nous parler de votre projet.
+              Contactez-nous pour nous décrire votre projet. Nous sélectionnons régulièrement de nouvelles pièces lors de nos chines.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <a
-                href="/luminaires/en-vente"
-                className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-8 py-3.5 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
-              >
-                Voir les luminaires en vente
-              </a>
-              <a
-                href="/#contact"
-                className="inline-flex min-h-12 items-center rounded-md border border-petita-gold/60 px-8 py-3.5 font-display text-lg text-petita-brick no-underline hover:bg-petita-brick hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
-              >
-                Nous contacter
-              </a>
-            </div>
+            <a
+              href="/#contact"
+              className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-8 py-3.5 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
+            >
+              Nous écrire
+            </a>
           </div>
         </section>
       </main>

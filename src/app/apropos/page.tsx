@@ -62,7 +62,7 @@ export default function Apropos() {
                 <p className="m-0">
                   Des rencontres humaines, du partage et <span className="font-bold">SURTOUT</span>
                 </p>
-                <p className="m-0 text-2xl font-semibold text-petita-gold">
+                <p className="m-0 text-2xl font-semibold text-petita-gold-fonce">
                   de l'amour…
                 </p>
               </div>
@@ -71,7 +71,7 @@ export default function Apropos() {
 
               <a
                 href="/#contact"
-                className="inline-flex w-fit min-h-12 items-center rounded-md bg-petita-brick px-8 py-3.5 font-display text-lg !text-petita-cream no-underline hover:bg-petita-rose hover:!text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
+                className="inline-flex w-fit min-h-12 items-center rounded-md bg-petita-brick px-8 py-3.5 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
               >
                 Nous contacter
               </a>
