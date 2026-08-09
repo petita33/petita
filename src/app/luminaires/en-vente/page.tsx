@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { PlaceholderImage } from "@/components/PlaceholderImage";
+import { AnnoncesGrille } from "@/components/AnnoncesGrille";
+import { trierParDateDecroissante } from "@/lib/annonces";
+import { lireAnnonces } from "@/lib/annonces-store";
 
 export const metadata: Metadata = {
   title: "Nos luminaires en vente — Atelier Petita",
@@ -9,16 +11,17 @@ export const metadata: Metadata = {
     "Découvrez notre sélection de luminaires anciens restaurés, disponibles à la vente. Pièces uniques remises aux normes à la main.",
 };
 
-const luminaires = [
-  { id: 1, titre: "Suspension opaline festonnée", prix: "", details: "Câblage neuf · Laiton poli main" },
-  { id: 2, titre: "Lustre bronze à cinq bras", prix: "", details: "Électrifié · Patine d'origine conservée" },
-  { id: 3, titre: "Applique art déco", prix: "", details: "Verre moulé · Douille E27" },
-  { id: 4, titre: "Lampe de bureau articulée", prix: "", details: "Métal laqué · Câble tissu" },
-  { id: 5, titre: "Suspension cloche émaillée", prix: "", details: "Émail blanc · Câblage neuf" },
-  { id: 6, titre: "Chandelier à pampilles", prix: "", details: "Cristal taillé · Or patiné" },
-];
+// Les annonces sont lues à chaque requête pour qu'une publication soit
+// visible immédiatement.
+export const dynamic = "force-dynamic";
 
-export default function LuminairesEnVente() {
+export default async function LuminairesEnVente() {
+  const annonces = trierParDateDecroissante(
+    (await lireAnnonces()).filter(
+      (annonce) => annonce.categorie === "luminaires-en-vente",
+    ),
+  );
+
   return (
     <div className="overflow-x-hidden">
       <Header />
@@ -46,41 +49,10 @@ export default function LuminairesEnVente() {
 
         {/* Grille des luminaires */}
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-20">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {luminaires.map((l) => (
-              <article
-                key={l.id}
-                className="flex flex-col overflow-hidden rounded-xl border border-petita-gold/20 bg-petita-cream transition-shadow hover:shadow-md"
-              >
-                <div className="overflow-hidden">
-                  <PlaceholderImage
-                    ratio="aspect-[4/3]"
-                    alt={l.titre}
-                    label={`luminaire ${l.id}`}
-                  />
-                </div>
-                <div className="flex flex-grow flex-col gap-2 p-5">
-                  <h2 className="m-0 font-display text-xl font-semibold text-petita-brick">
-                    {l.titre}
-                  </h2>
-                  <p className="m-0 font-display text-lg font-semibold text-petita-gold">
-                    € {l.prix}
-                  </p>
-                  <p className="m-0 text-sm text-petita-brown">
-                    {l.details}
-                  </p>
-                  <div className="mt-auto pt-4">
-                    <a
-                      href="#contact"
-                      className="inline-flex min-h-11 items-center rounded-md border border-petita-gold/60 px-5 py-2.5 font-display text-[15px] text-petita-brick no-underline hover:bg-petita-brick hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
-                    >
-                      Nous contacter
-                    </a>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <AnnoncesGrille
+            annonces={annonces}
+            messageVide="Aucune pièce disponible pour le moment — de nouvelles trouvailles arrivent après chaque chine."
+          />
 
           <div className="mt-16 rounded-xl border border-petita-gold/30 bg-petita-cream p-8 text-center sm:p-12">
             <h2 className="m-0 font-display text-2xl font-semibold text-petita-brick">

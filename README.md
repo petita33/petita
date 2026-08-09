@@ -1,5 +1,47 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Espace d'administration
+
+`/admin` permet de publier les annonces (titre, description, prix facultatif,
+photos) et de choisir la page sur laquelle elles apparaissent :
+
+| Emplacement          | Page publique            |
+| -------------------- | ------------------------ |
+| Luminaires en vente  | `/luminaires/en-vente`   |
+| Luminaires vendus    | `/luminaires/vendus`     |
+| Meubles              | `/meubles` *(à créer)*   |
+
+### Mise en service
+
+1. Sur Vercel, onglet **Storage** du projet → créer un store **Blob** et le
+   relier au projet. `BLOB_READ_WRITE_TOKEN` est alors injecté automatiquement.
+2. Ajouter deux variables d'environnement au projet Vercel :
+   - `ADMIN_PASSWORD` — le mot de passe de connexion à `/admin` ;
+   - `ADMIN_SESSION_SECRET` — une clé aléatoire, via `openssl rand -base64 32`.
+3. En local : `vercel env pull .env.local` (voir `.env.example`).
+
+Sans store Blob configuré, les pages publiques s'affichent vides et
+l'enregistrement d'une annonce renvoie un message d'erreur explicite.
+
+### Fonctionnement
+
+- Les photos sont envoyées **depuis le navigateur** directement vers Vercel
+  Blob (`/api/admin/upload` ne délivre qu'un jeton), ce qui contourne la limite
+  de 4,5 Mo des fonctions serveur. Elles sont redimensionnées et converties en
+  WebP avant l'envoi.
+- Les annonces elles-mêmes vivent dans un seul JSON sur Blob
+  (`donnees/annonces.json`), lu en contournant le CDN pour qu'une publication
+  soit visible immédiatement. Les écritures sont conditionnées par l'ETag, donc
+  deux modifications simultanées ne peuvent pas s'écraser silencieusement.
+- L'accès est protégé par un mot de passe unique et une session signée en
+  cookie `httpOnly`. `src/proxy.ts` redirige les visiteurs non connectés, et
+  **chaque** Server Action revérifie la session.
+
+### Créer la page Meubles
+
+Elle se branche en reprenant `src/app/luminaires/en-vente/page.tsx` et en
+filtrant sur la catégorie `meubles` — `AnnoncesGrille` fait le reste.
+
 ## Getting Started
 
 First, run the development server:
