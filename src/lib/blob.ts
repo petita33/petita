@@ -1,13 +1,12 @@
 /**
  * Accès bas niveau au store Vercel Blob, partagé par les jeux de données du site.
  *
- * Chaque jeu de données tient dans un seul JSON. Il est lu avec `useCache: false`
- * pour court-circuiter le CDN : une modification est donc visible immédiatement.
- * Les écritures utilisent `ifMatch` (ETag) pour ne jamais écraser une modification
- * concurrente sans le signaler.
+ * Chaque jeu de données tient dans un seul JSON. Les écritures utilisent
+ * `ifMatch` (ETag) pour ne jamais écraser une modification concurrente sans le
+ * signaler.
  */
 
-import { del, get, list, put } from "@vercel/blob";
+import { BlobPreconditionFailedError, del, get, list, put } from "@vercel/blob";
 
 export class ConflitDeVersion extends Error {
   constructor() {
@@ -30,9 +29,27 @@ export function blobConfigure() {
 }
 
 /**
+ * `get` lit le blob par son URL publique, donc à travers le CDN, qui compresse
+ * la réponse et *affaiblit* l'ETag au passage : `W/"abc…"` là où le store tient
+ * `"abc…"`. Le `x-if-match` d'une écriture est comparé à la valeur forte : sans
+ * ce nettoyage, aucune écriture conditionnelle ne peut aboutir.
+ *
+ * On ne garde que la valeur, sans le marqueur faible. Si le CDN venait un jour à
+ * renvoyer un tout autre ETag, l'écriture échouerait — jamais elle n'écraserait
+ * en silence.
+ */
+function etagFort(etag: string) {
+  return etag.replace(/^W\//, "");
+}
+
+/**
  * Lit un JSON avec son ETag. Renvoie un contenu nul tant que le fichier n'a
  * jamais été écrit — ou tant qu'aucun jeton Blob n'est configuré (dev local sans
  * `vercel env pull`), pour que le site public reste affichable.
+ *
+ * `useCache: false` n'a d'effet que sur les blobs privés (le SDK n'ajoute son
+ * `cache=0` que dans ce cas) : la lecture passe donc bien par le CDN. C'est la
+ * purge à l'écriture, côté Vercel, qui garantit la fraîcheur du contenu.
  */
 export async function lireJson(chemin: string): Promise<InstantaneJson> {
   if (!blobConfigure()) {
@@ -61,7 +78,7 @@ export async function lireJson(chemin: string): Promise<InstantaneJson> {
 
   const texte = await new Response(reponse.stream).text();
   try {
-    return { contenu: JSON.parse(texte), version: reponse.blob.etag };
+    return { contenu: JSON.parse(texte), version: etagFort(reponse.blob.etag) };
   } catch {
     throw new Error(`Le fichier ${chemin} n'est pas un JSON valide.`);
   }
@@ -90,7 +107,9 @@ export async function ecrireJson(
       ...(version ? { ifMatch: version } : {}),
     });
   } catch (erreur) {
-    if ((erreur as Error).name === "BlobPreconditionFailedError") {
+    // `BlobError` ne renseigne pas `name` : toutes les erreurs du SDK arrivent
+    // ici en `name === "Error"`. Seul `instanceof` les distingue.
+    if (erreur instanceof BlobPreconditionFailedError) {
       throw new ConflitDeVersion();
     }
     throw erreur;
