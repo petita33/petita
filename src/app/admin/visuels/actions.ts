@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { estUrlBlob, supprimerImages } from "@/lib/blob";
 import { balayerImagesOrphelines } from "@/lib/menage";
+import { estFormat } from "@/lib/formats";
 import { DOSSIER_VISUELS, estEmplacement, type Visuels } from "@/lib/visuels";
 import { ecrireVisuels, lireInstantaneVisuels } from "@/lib/visuels-store";
 import { sessionActive } from "@/lib/session";
@@ -31,6 +32,9 @@ export async function enregistrerVisuel(
   const emplacement = String(donnees.get("emplacement") ?? "");
   const image = String(donnees.get("image") ?? "").trim();
   const alt = String(donnees.get("alt") ?? "").trim();
+  // Vide ou inconnu : l'emplacement garde le cadre conseillé par le site.
+  const formatBrut = donnees.get("format");
+  const format = estFormat(formatBrut) ? formatBrut : undefined;
 
   if (!estEmplacement(emplacement)) return { erreur: "Emplacement inconnu." };
   if (image !== "" && !estUrlBlob(image, DOSSIER_VISUELS)) {
@@ -47,7 +51,7 @@ export async function enregistrerVisuel(
   if (image === "") {
     delete suivants[emplacement];
   } else {
-    suivants[emplacement] = { url: image, alt };
+    suivants[emplacement] = { url: image, alt, ...(format ? { format } : {}) };
   }
 
   try {

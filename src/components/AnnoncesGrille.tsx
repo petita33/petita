@@ -38,7 +38,11 @@ function CarteAnnonce({ annonce }: { annonce: Annonce }) {
   return (
     <article className="relative flex flex-col overflow-hidden rounded-xl border border-petita-gold/20 bg-petita-cream transition-shadow hover:shadow-md">
       <div className="relative">
-        <GalerieAnnonce images={annonce.images} titre={annonce.titre} />
+        <GalerieAnnonce
+          images={annonce.images}
+          titre={annonce.titre}
+          format={annonce.format}
+        />
         {categorie.pastille ? (
           <span className="absolute left-4 top-4 z-10 rounded-full bg-petita-brick/90 px-3.5 py-1 font-display text-sm text-petita-cream">
             {categorie.pastille}

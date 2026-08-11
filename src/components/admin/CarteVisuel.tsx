@@ -2,6 +2,7 @@
 
 import { useActionState, useId, useRef, useState } from "react";
 import { enregistrerVisuel } from "@/app/admin/visuels/actions";
+import { classeDuFormat, type FormatImage } from "@/lib/formats";
 import {
   DOSSIER_VISUELS,
   EMPLACEMENTS,
@@ -9,6 +10,7 @@ import {
   type EmplacementId,
   type Visuel,
 } from "@/lib/visuels";
+import { ChampFormat } from "./ChampFormat";
 import { envoyerImage } from "./envoyerImage";
 import { MaquetteSection } from "./MaquetteSection";
 import {
@@ -43,6 +45,8 @@ export function CarteVisuel({
   // Ce que le formulaire enverra ; `""` signifie « vider l'emplacement ».
   const [image, setImage] = useState(visuel?.url ?? "");
   const [alt, setAlt] = useState(visuel?.alt ?? "");
+  // `""` : garder le cadre conseillé pour cet emplacement.
+  const [format, setFormat] = useState<FormatImage | "">(visuel?.format ?? "");
   const [progression, setProgression] = useState<number | null>(null);
   const [erreurEnvoi, setErreurEnvoi] = useState<string | null>(null);
 
@@ -50,7 +54,11 @@ export function CarteVisuel({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const enCoursDEnvoi = progression !== null;
-  const modifiee = image !== (visuel?.url ?? "") || alt !== (visuel?.alt ?? "");
+  const modifiee =
+    image !== (visuel?.url ?? "") ||
+    alt !== (visuel?.alt ?? "") ||
+    format !== (visuel?.format ?? "");
+  const ratio = format ? classeDuFormat(format) : cadre.conseille.classe;
 
   async function choisirFichier(fichier: File) {
     setErreurEnvoi(null);
@@ -73,6 +81,7 @@ export function CarteVisuel({
     >
       <input type="hidden" name="emplacement" value={emplacement} />
       <input type="hidden" name="image" value={image} />
+      <input type="hidden" name="format" value={format} />
 
       <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         {/* Repérage : où cette photo apparaît-elle ? */}
@@ -90,7 +99,9 @@ export function CarteVisuel({
           </div>
 
           <p className="mt-3 text-sm text-petita-brown/80">
-            <span className="font-display text-petita-brick">{cadre.format}.</span>{" "}
+            <span className="font-display text-petita-brick">
+              {cadre.conseille.libelle}.
+            </span>{" "}
             {cadre.conseil}
           </p>
         </div>
@@ -103,7 +114,7 @@ export function CarteVisuel({
               <img
                 src={image}
                 alt=""
-                className={`${cadre.ratio} w-full object-cover ${
+                className={`${ratio} w-full object-cover ${
                   enCoursDEnvoi ? "opacity-45" : ""
                 }`}
               />
@@ -163,6 +174,22 @@ export function CarteVisuel({
                 Retirer la photo
               </button>
             ) : null}
+          </div>
+
+          <div className="mt-5">
+            <ChampFormat
+              titre="Format de la photo"
+              aide="Les proportions du cadre à cet endroit de la page d'accueil. Choisissez le format de la prise de vue pour que la photo ne soit pas rognée."
+              valeur={format}
+              onChange={setFormat}
+              auto={{
+                label: "Conseillé",
+                orientation: cadre.conseille.libelle,
+                largeur: cadre.conseille.largeur,
+                hauteur: cadre.conseille.hauteur,
+              }}
+              desactive={enCoursDEnvoi}
+            />
           </div>
 
           <div className="mt-5">

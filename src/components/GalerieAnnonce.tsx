@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { classeDuFormat, type FormatImage } from "@/lib/formats";
 
 /**
  * Petit carrousel : une annonce peut avoir plusieurs photos.
@@ -10,16 +11,21 @@ import { useState } from "react";
  * avec des pastilles ; `variante="detail"` occupe la largeur d'une page et
  * ajoute une bande de miniatures.
  *
+ * `format` donne les proportions du cadre : il vient de l'annonce, une même
+ * grille peut donc mêler des cartes de hauteurs différentes.
+ *
  * Les commandes sont en `z-10` : sur une carte, elles doivent rester
  * cliquables au-dessus du lien étiré qui recouvre toute la carte.
  */
 export function GalerieAnnonce({
   images,
   titre,
+  format,
   variante = "carte",
 }: {
   images: string[];
   titre: string;
+  format: FormatImage;
   variante?: "carte" | "detail";
 }) {
   const [index, setIndex] = useState(0);
@@ -40,7 +46,7 @@ export function GalerieAnnonce({
   return (
     <div className={detail ? "flex flex-col gap-3" : undefined}>
       <div
-        className={`group relative aspect-[4/3] overflow-hidden bg-petita-blush ${
+        className={`group relative ${classeDuFormat(format)} overflow-hidden bg-petita-blush ${
           detail ? "rounded-xl border border-petita-gold/25" : ""
         }`}
       >
@@ -95,7 +101,9 @@ export function GalerieAnnonce({
                 aria-label={`Voir la photo ${rang + 1}`}
                 aria-current={rang === position}
                 onClick={() => setIndex(rang)}
-                className={`relative block h-20 w-24 overflow-hidden rounded-lg border-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold ${
+                className={`relative block h-20 ${classeDuFormat(
+                  format,
+                )} overflow-hidden rounded-lg border-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold ${
                   rang === position
                     ? "border-petita-brick"
                     : "border-petita-gold/30 hover:border-petita-gold"
@@ -105,7 +113,7 @@ export function GalerieAnnonce({
                   src={url}
                   alt=""
                   fill
-                  sizes="96px"
+                  sizes="160px"
                   className="object-cover"
                 />
               </button>

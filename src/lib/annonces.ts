@@ -3,6 +3,8 @@
  * Ce fichier ne fait aucun accès réseau : il est importable côté client.
  */
 
+import type { FormatImage } from "./formats";
+
 /**
  * Les catégories sont réparties en groupes, qui n'ont rien à voir entre eux
  * dans l'espace d'administration : d'un côté ce qui est proposé à la vente,
@@ -138,6 +140,11 @@ export type Annonce = {
   prix: number | null;
   /** URLs Vercel Blob, dans l'ordre d'affichage. La première sert de vignette. */
   images: string[];
+  /**
+   * Proportions du cadre dans lequel les photos sont montrées, partout sur le
+   * site. Commun à toutes les photos de l'annonce, propre à chaque annonce.
+   */
+  format: FormatImage;
   /**
    * Lien vers l'annonce sur la plateforme de vente (Vinted, Leboncoin…).
    * `null` quand aucun lien n'est renseigné. Affiché uniquement sur la page

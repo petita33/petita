@@ -74,6 +74,7 @@ export default async function PageAnnonce({
           <GalerieAnnonce
             images={annonce.images}
             titre={annonce.titre}
+            format={annonce.format}
             variante="detail"
           />
 

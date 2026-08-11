@@ -10,6 +10,7 @@ import {
   type Annonce,
   type Groupe,
 } from "@/lib/annonces";
+import { FORMAT_PAR_DEFAUT, type FormatImage } from "@/lib/formats";
 import { ChampImages } from "./ChampImages";
 import {
   classeAide,
@@ -35,6 +36,9 @@ export function FormulaireAnnonce({
   const [etat, action, enCours] = useActionState(enregistrerAnnonce, undefined);
   const categorieParDefaut = annonce?.categorie ?? categoriesDuGroupe(groupe)[0];
   const [images, setImages] = useState<string[]>(annonce?.images ?? []);
+  const [format, setFormat] = useState<FormatImage>(
+    annonce?.format ?? FORMAT_PAR_DEFAUT,
+  );
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
   return (
@@ -160,6 +164,8 @@ export function FormulaireAnnonce({
       <ChampImages
         images={images}
         setImages={setImages}
+        format={format}
+        setFormat={setFormat}
         onOccupeChange={setEnvoiEnCours}
       />
 

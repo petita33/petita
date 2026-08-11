@@ -10,6 +10,7 @@ import {
   type Annonce,
 } from "@/lib/annonces";
 import { ecrireAnnonces, lireInstantane } from "@/lib/annonces-store";
+import { normaliserFormat } from "@/lib/formats";
 import { supprimerImages } from "@/lib/blob";
 import { balayerImagesOrphelines } from "@/lib/menage";
 import {
@@ -118,6 +119,9 @@ export async function enregistrerAnnonce(
   const description = String(donnees.get("description") ?? "").trim();
   const categorie = String(donnees.get("categorie") ?? "");
   const images = nettoyerImages(donnees.get("images"));
+  // Un format absent ou inconnu retombe sur le cadre par défaut : le champ est
+  // toujours renseigné par le formulaire, rien ne justifie de bloquer la saisie.
+  const format = normaliserFormat(donnees.get("format"));
   const prix = lirePrix(donnees.get("prix"));
   const lienExterne = lireLienExterne(donnees.get("lienExterne"));
 
@@ -161,6 +165,7 @@ export async function enregistrerAnnonce(
       categorie,
       prix,
       images,
+      format,
       lienExterne,
       modifieLe: maintenant,
     };
@@ -174,6 +179,7 @@ export async function enregistrerAnnonce(
         categorie,
         prix,
         images,
+        format,
         lienExterne,
         creeLe: maintenant,
         modifieLe: maintenant,

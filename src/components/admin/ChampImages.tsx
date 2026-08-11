@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { DOSSIER_ANNONCES } from "@/lib/annonces";
+import { classeDuFormat, type FormatImage } from "@/lib/formats";
+import { ChampFormat } from "./ChampFormat";
 import { envoyerImage } from "./envoyerImage";
 import { classeAide, classeErreur, classeLabel } from "./ui";
 
@@ -16,17 +18,25 @@ type EnvoiEnCours = {
 /**
  * Sélecteur de photos : compresse puis envoie chaque fichier directement à
  * Vercel Blob, et expose les URLs obtenues dans un champ caché `images`.
+ *
+ * Le format choisi vaut pour toutes les photos de l'annonce — les aperçus
+ * ci-dessous montrent exactement le cadre qu'aura le site.
  */
 export function ChampImages({
   images,
   setImages,
+  format,
+  setFormat,
   onOccupeChange,
 }: {
   images: string[];
   setImages: Dispatch<SetStateAction<string[]>>;
+  format: FormatImage;
+  setFormat: Dispatch<SetStateAction<FormatImage>>;
   onOccupeChange: (occupe: boolean) => void;
 }) {
   const idChamp = useId();
+  const cadre = classeDuFormat(format);
   const inputRef = useRef<HTMLInputElement>(null);
   const [envois, setEnvois] = useState<EnvoiEnCours[]>([]);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -107,6 +117,17 @@ export function ChampImages({
       </p>
 
       <input type="hidden" name="images" value={JSON.stringify(images)} />
+      <input type="hidden" name="format" value={format} />
+
+      <div className="mt-6">
+        <ChampFormat
+          titre="Format des photos"
+          aide="Les proportions dans lesquelles les photos seront montrées sur le site. Choisissez celui utilisé pour la prise de vue : la photo remplit alors le cadre sans être rognée. Il vaut pour toutes les photos de cette annonce."
+          valeur={format}
+          // Sans option « format conseillé », `ChampFormat` ne renvoie jamais "".
+          onChange={(choisi) => choisi && setFormat(choisi)}
+        />
+      </div>
 
       <input
         ref={inputRef}
@@ -132,7 +153,7 @@ export function ChampImages({
             <img
               src={url}
               alt={`Photo ${index + 1}`}
-              className="aspect-[4/3] w-full object-cover"
+              className={`${cadre} w-full object-cover`}
             />
             {index === 0 ? (
               <figcaption className="absolute left-2 top-2 rounded-full bg-petita-brick/90 px-3 py-0.5 font-display text-xs text-petita-cream">
@@ -179,7 +200,7 @@ export function ChampImages({
             <img
               src={envoi.apercu}
               alt=""
-              className="aspect-[4/3] w-full object-cover opacity-45"
+              className={`${cadre} w-full object-cover opacity-45`}
             />
             <figcaption className="absolute inset-x-0 bottom-0 bg-petita-cream/95 px-2 py-2 font-display text-xs text-petita-brown">
               Envoi… {Math.round(envoi.progression)} %
@@ -199,7 +220,7 @@ export function ChampImages({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex aspect-[4/3] flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-petita-gold/50 bg-petita-cream/50 font-display text-[15px] text-petita-brick hover:border-petita-gold hover:bg-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
+          className={`flex ${cadre} flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-petita-gold/50 bg-petita-cream/50 font-display text-[15px] text-petita-brick hover:border-petita-gold hover:bg-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold`}
         >
           <span aria-hidden="true" className="text-2xl leading-none">
             +

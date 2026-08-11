@@ -7,6 +7,7 @@
 
 import { ecrireJson, lireJson } from "./blob";
 import { normaliserCategorie, type Annonce } from "./annonces";
+import { normaliserFormat } from "./formats";
 
 const CHEMIN_DONNEES = "donnees/annonces.json";
 
@@ -26,6 +27,9 @@ export async function lireInstantane(): Promise<Instantane> {
     annonces: annonces.map((annonce) => ({
       ...annonce,
       categorie: normaliserCategorie(annonce.categorie),
+      // Les annonces publiées avant le choix du format gardent le cadre 4:3
+      // dans lequel elles ont toujours été montrées.
+      format: normaliserFormat(annonce.format),
       lienExterne:
         typeof annonce.lienExterne === "string" && annonce.lienExterne !== ""
           ? annonce.lienExterne

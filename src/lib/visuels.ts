@@ -13,6 +13,8 @@
  * viennent des annonces.
  */
 
+import { classeDuFormat, estFormat, type FormatImage } from "./formats";
+
 /** Une colonne de la maquette d'une section, pour le schéma de repérage. */
 type Bloc = "texte" | "photo";
 
@@ -55,11 +57,15 @@ export const EMPLACEMENTS = {
     /** Rang de la colonne occupée dans `disposition`. */
     colonne: 1,
     position: "La grande photo d'ambiance",
-    format: "Paysage — 5 pour 4",
+    conseille: {
+      libelle: "Paysage — 5 pour 4",
+      // Classe Tailwind, écrite en toutes lettres pour l'analyse du CSS.
+      classe: "aspect-[5/4]",
+      largeur: 5,
+      hauteur: 4,
+    },
     conseil:
       "La première image que voient les visiteurs : une vue d'ensemble de l'atelier ou une mise en situation vaut mieux qu'un gros plan.",
-    // Classe Tailwind : le cadre est fixe, la photo est recadrée dedans.
-    ratio: "aspect-[5/4]",
     tone: "blush",
     altParDefaut: "Photo d'ambiance de l'Atelier Petita",
   },
@@ -67,9 +73,13 @@ export const EMPLACEMENTS = {
     section: "luminaires",
     colonne: 0,
     position: "La photo de gauche",
-    format: "Portrait — 3 pour 4",
+    conseille: {
+      libelle: "Portrait — 3 pour 4",
+      classe: "aspect-[3/4]",
+      largeur: 3,
+      hauteur: 4,
+    },
     conseil: "Un luminaire restauré, photographié en hauteur.",
-    ratio: "aspect-[3/4]",
     tone: "blush",
     altParDefaut: "Luminaire ancien restauré par l'Atelier Petita",
   },
@@ -77,9 +87,13 @@ export const EMPLACEMENTS = {
     section: "luminaires",
     colonne: 2,
     position: "La photo de droite",
-    format: "Portrait — 3 pour 4",
+    conseille: {
+      libelle: "Portrait — 3 pour 4",
+      classe: "aspect-[3/4]",
+      largeur: 3,
+      hauteur: 4,
+    },
     conseil: "Un second luminaire, pour équilibrer avec celui de gauche.",
-    ratio: "aspect-[3/4]",
     tone: "blush",
     altParDefaut: "Luminaire ancien restauré par l'Atelier Petita",
   },
@@ -87,9 +101,13 @@ export const EMPLACEMENTS = {
     section: "meubles",
     colonne: 1,
     position: "La photo du milieu",
-    format: "Paysage — 4 pour 3",
+    conseille: {
+      libelle: "Paysage — 4 pour 3",
+      classe: "aspect-[4/3]",
+      largeur: 4,
+      hauteur: 3,
+    },
     conseil: "Un meuble entier après restauration.",
-    ratio: "aspect-[4/3]",
     tone: "sand",
     altParDefaut: "Meuble ancien restauré par l'Atelier Petita",
   },
@@ -97,10 +115,14 @@ export const EMPLACEMENTS = {
     section: "meubles",
     colonne: 2,
     position: "La photo de droite",
-    format: "Paysage — 4 pour 3",
+    conseille: {
+      libelle: "Paysage — 4 pour 3",
+      classe: "aspect-[4/3]",
+      largeur: 4,
+      hauteur: 3,
+    },
     conseil:
       "Un détail du travail réalisé — pochoir, poignée, patine — fait un bon contraste avec la photo du milieu.",
-    ratio: "aspect-[4/3]",
     tone: "sand",
     altParDefaut: "Détail d'un meuble restauré par l'Atelier Petita",
   },
@@ -110,9 +132,17 @@ export const EMPLACEMENTS = {
     section: SectionId;
     colonne: number;
     position: string;
-    format: string;
+    /**
+     * Le cadre dessiné pour cet emplacement. Il s'applique tant que la photo
+     * posée là n'impose pas son propre format.
+     */
+    conseille: {
+      libelle: string;
+      classe: string;
+      largeur: number;
+      hauteur: number;
+    };
     conseil: string;
-    ratio: string;
     tone: "blush" | "sand" | "rose";
     altParDefaut: string;
   }
@@ -140,6 +170,11 @@ export type Visuel = {
   url: string;
   /** Texte lu par les lecteurs d'écran. Vide = `altParDefaut`. */
   alt: string;
+  /**
+   * Proportions imposées à cette photo. Absent = le cadre conseillé pour
+   * l'emplacement, celui que le site a toujours utilisé.
+   */
+  format?: FormatImage;
 };
 
 /** Un emplacement sans entrée n'a pas de photo : il affiche son aplat. */
@@ -147,6 +182,16 @@ export type Visuels = Partial<Record<EmplacementId, Visuel>>;
 
 export function altDe(emplacement: EmplacementId, visuel: Visuel) {
   return visuel.alt.trim() || EMPLACEMENTS[emplacement].altParDefaut;
+}
+
+/**
+ * Classe Tailwind du cadre d'un emplacement : le format choisi pour la photo
+ * qui s'y trouve, sinon le cadre conseillé.
+ */
+export function cadreDe(emplacement: EmplacementId, visuel?: Visuel) {
+  return visuel?.format
+    ? classeDuFormat(visuel.format)
+    : EMPLACEMENTS[emplacement].conseille.classe;
 }
 
 /**
@@ -159,9 +204,19 @@ export function normaliserVisuels(contenu: unknown): Visuels {
   const visuels: Visuels = {};
   for (const [cle, valeur] of Object.entries(contenu)) {
     if (!estEmplacement(cle) || !valeur || typeof valeur !== "object") continue;
-    const { url, alt } = valeur as { url?: unknown; alt?: unknown };
+    const { url, alt, format } = valeur as {
+      url?: unknown;
+      alt?: unknown;
+      format?: unknown;
+    };
     if (typeof url !== "string" || url === "") continue;
-    visuels[cle] = { url, alt: typeof alt === "string" ? alt : "" };
+    visuels[cle] = {
+      url,
+      alt: typeof alt === "string" ? alt : "",
+      // Un format absent (photo posée avant que le choix existe) ou inconnu
+      // laisse l'emplacement à son cadre conseillé.
+      ...(estFormat(format) ? { format } : {}),
+    };
   }
   return visuels;
 }

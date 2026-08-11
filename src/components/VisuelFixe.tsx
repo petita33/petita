@@ -1,13 +1,22 @@
 import Image from "next/image";
-import { altDe, EMPLACEMENTS, type EmplacementId, type Visuels } from "@/lib/visuels";
+import {
+  altDe,
+  cadreDe,
+  EMPLACEMENTS,
+  type EmplacementId,
+  type Visuels,
+} from "@/lib/visuels";
 import { PlaceholderImage } from "./PlaceholderImage";
 
 /**
  * Un des emplacements photo fixes de la page d'accueil.
  *
- * Le cadre — proportions, teinte, comportement au survol — appartient au site
- * et ne bouge pas. Seule la photo vient de l'administration ; tant qu'aucune
- * n'a été déposée, l'aplat décoratif tient la place sans casser la mise en page.
+ * La teinte et le comportement au survol appartiennent au site ; les
+ * proportions suivent le format choisi pour la photo, et retombent sur le
+ * cadre conseillé pour l'emplacement à défaut. Les sections de la page
+ * d'accueil centrent leurs colonnes : un cadre plus haut ou plus large
+ * n'y casse rien. Tant qu'aucune photo n'a été déposée, l'aplat décoratif
+ * tient la place.
  */
 export function VisuelFixe({
   emplacement,
@@ -27,7 +36,7 @@ export function VisuelFixe({
   if (!visuel) {
     return (
       <PlaceholderImage
-        ratio={cadre.ratio}
+        ratio={cadre.conseille.classe}
         tone={cadre.tone}
         alt={cadre.altParDefaut}
       />
@@ -35,7 +44,9 @@ export function VisuelFixe({
   }
 
   return (
-    <div className={`group relative ${cadre.ratio} overflow-hidden`}>
+    <div
+      className={`group relative ${cadreDe(emplacement, visuel)} overflow-hidden`}
+    >
       <Image
         src={visuel.url}
         alt={altDe(emplacement, visuel)}
