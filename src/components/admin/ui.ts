@@ -14,5 +14,9 @@ export const classeBoutonPrincipal =
 export const classeBoutonSecondaire =
   "inline-flex min-h-12 items-center justify-center rounded-md border border-petita-gold/60 px-6 py-3 font-display text-[17px] text-petita-brick no-underline hover:bg-petita-brick hover:text-petita-cream disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold";
 
+/** Variante réduite du bouton secondaire, pour les actions posées dans une liste. */
+export const classeBoutonCompact =
+  "inline-flex min-h-10 items-center justify-center rounded-md border border-petita-gold/60 px-4 py-2 font-display text-[15px] text-petita-brick no-underline hover:bg-petita-brick hover:text-petita-cream disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold";
+
 export const classeErreur =
   "rounded-md border border-petita-brick/40 bg-petita-brick/10 px-4 py-3 font-display text-[15px] text-petita-brick";

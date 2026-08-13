@@ -9,13 +9,16 @@ import { Reassurance } from "@/components/Reassurance";
 import { ContactForm } from "@/components/ContactForm";
 import { Footer } from "@/components/Footer";
 import { lireVisuels } from "@/lib/visuels-store";
+import { lireAnnonces } from "@/lib/annonces-store";
+import { dernieresVentes } from "@/lib/annonces";
 
-// Les photos fixes sont lues à chaque requête pour qu'un changement depuis
-// l'administration soit visible immédiatement.
+// Les photos fixes et les annonces sont lues à chaque requête pour qu'un
+// changement depuis l'administration soit visible immédiatement.
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const visuels = await lireVisuels();
+  const [visuels, annonces] = await Promise.all([lireVisuels(), lireAnnonces()]);
+  const ventes = dernieresVentes(annonces);
 
   return (
     <div className="overflow-x-hidden">
@@ -33,7 +36,7 @@ export default async function Home() {
         <About />
         <Luminaires visuels={visuels} />
         <Meubles visuels={visuels} />
-        <Gallery />
+        <Gallery ventes={ventes} />
         <Testimonials />
         <Reassurance />
         <ContactForm />

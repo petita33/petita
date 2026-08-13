@@ -101,6 +101,24 @@ export function groupeDe(categorie: Categorie): Groupe {
   return CATEGORIES[categorie].groupe;
 }
 
+/**
+ * Contrepartie « vendu » d'une catégorie en vente : c'est la page vers laquelle
+ * l'annonce bascule une fois la pièce partie.
+ */
+const CATEGORIES_VENDUES = {
+  "luminaires-en-vente": "luminaires-vendus",
+  "meubles-en-vente": "meubles-vendus",
+} as const satisfies Partial<Record<Categorie, Categorie>>;
+
+type CategorieEnVente = keyof typeof CATEGORIES_VENDUES;
+
+/** La catégorie « vendu » correspondante, ou `null` hors des pages de vente. */
+export function categorieVendue(categorie: Categorie): Categorie | null {
+  return categorie in CATEGORIES_VENDUES
+    ? CATEGORIES_VENDUES[categorie as CategorieEnVente]
+    : null;
+}
+
 /** « 3 annonces », « 1 rénovation »… */
 export function compter(nombre: number, nom: string) {
   return `${nombre} ${nom}${nombre > 1 ? "s" : ""}`;
@@ -201,4 +219,19 @@ export function formaterPrix(prix: number | null) {
 
 export function trierParDateDecroissante(annonces: Annonce[]) {
   return [...annonces].sort((a, b) => b.creeLe.localeCompare(a.creeLe));
+}
+
+/**
+ * Les vignettes de « Nos dernières ventes » : les premières annonces des pages
+ * « Luminaires vendus » et « Meubles vendus », dans l'ordre où elles y figurent.
+ * Rien à tenir à jour à la main — publier une annonce vendue suffit.
+ */
+export function dernieresVentes(annonces: Annonce[], parCategorie = 2) {
+  const vitrine = ["luminaires-vendus", "meubles-vendus"] as const;
+
+  return vitrine.flatMap((categorie) =>
+    trierParDateDecroissante(
+      annonces.filter((annonce) => annonce.categorie === categorie),
+    ).slice(0, parCategorie),
+  );
 }

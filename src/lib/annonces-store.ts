@@ -9,16 +9,17 @@ import { ecrireJson, lireJson } from "./blob";
 import { normaliserCategorie, type Annonce } from "./annonces";
 import { normaliserFormat } from "./formats";
 
-const CHEMIN_DONNEES = "donnees/annonces.json";
+/** Dossier des versions successives du JSON, la plus récente faisant foi. */
+const DONNEES = "donnees/annonces";
 
 export type Instantane = {
   annonces: Annonce[];
-  /** ETag du JSON lu, ou `null` si le fichier n'existe pas encore. */
+  /** Version lue, à repasser à l'écriture — `null` si rien n'a été écrit. */
   version: string | null;
 };
 
 export async function lireInstantane(): Promise<Instantane> {
-  const { contenu, version } = await lireJson(CHEMIN_DONNEES);
+  const { contenu, version } = await lireJson(DONNEES);
   const annonces = Array.isArray(contenu) ? (contenu as Annonce[]) : [];
 
   return {
@@ -49,5 +50,5 @@ export async function lireAnnonce(id: string): Promise<Annonce | null> {
 }
 
 export async function ecrireAnnonces(annonces: Annonce[], version: string | null) {
-  await ecrireJson(CHEMIN_DONNEES, annonces, version);
+  await ecrireJson(DONNEES, annonces, version);
 }

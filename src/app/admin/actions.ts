@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import {
   CATEGORIES,
+  categorieVendue,
   estCategorie,
   hrefAnnonce,
   type Annonce,
@@ -203,6 +204,42 @@ export async function enregistrerAnnonce(
   // Ramasse au passage les photos envoyées puis abandonnées sans enregistrement.
   after(balayerImagesOrphelines);
   rafraichir(id || null, categorie, id ? annonces.find((a) => a.id === id)?.categorie : undefined);
+  redirect("/admin");
+}
+
+/**
+ * Bascule une annonce en vente vers la page « vendus » correspondante.
+ * Le prix est conservé tel quel : il n'est plus affiché sur les pages vendues,
+ * et il est ainsi encore là si l'annonce doit repartir en vente.
+ */
+export async function marquerVendue(donnees: FormData) {
+  if (!(await sessionActive())) redirect("/admin/connexion");
+
+  const id = String(donnees.get("id") ?? "");
+  const { annonces, version } = await lireInstantane();
+  const index = annonces.findIndex((annonce) => annonce.id === id);
+  if (index === -1) redirect("/admin");
+
+  const precedente = annonces[index];
+  const vendue = categorieVendue(precedente.categorie);
+  // L'annonce a pu être déplacée entre-temps depuis un autre onglet.
+  if (!vendue) redirect("/admin");
+
+  const suivantes = [...annonces];
+  suivantes[index] = {
+    ...precedente,
+    categorie: vendue,
+    modifieLe: new Date().toISOString(),
+  };
+
+  try {
+    await ecrireAnnonces(suivantes, version);
+  } catch (erreur) {
+    console.error("Passage de l'annonce en vendu impossible", erreur);
+    redirect("/admin?erreur=conflit");
+  }
+
+  rafraichir(precedente.id, precedente.categorie, vendue);
   redirect("/admin");
 }
 

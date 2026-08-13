@@ -7,7 +7,7 @@ const TONES = {
 /**
  * Aplat décoratif tenant la place d'une photo absente : les emplacements fixes
  * de la page d'accueil s'en servent tant qu'aucune photo n'y a été déposée, et
- * « Nos dernières ventes » tant qu'il n'y a pas d'annonce à montrer.
+ * « Nos dernières ventes » pour une annonce publiée sans photo.
  */
 export function PlaceholderImage({
   alt,

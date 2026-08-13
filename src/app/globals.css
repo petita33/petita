@@ -47,6 +47,31 @@
   }
 }
 
+/* Les demandes de confirmation de l'admin (`BoutonConfirmation`). Sans cette
+   apparition, la modale surgit d'un coup là où tout le reste du site glisse. */
+@keyframes modale-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes fond-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog[open] {
+    animation: modale-in 180ms ease-out;
+  }
+
+  dialog[open]::backdrop {
+    animation: fond-in 180ms ease-out;
+  }
+}
+
 @keyframes reveal-in {
   from {
     opacity: 0;

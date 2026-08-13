@@ -1,6 +1,8 @@
+import { BoutonVendu } from "@/components/admin/BoutonVendu";
 import { classeBoutonPrincipal, classeErreur } from "@/components/admin/ui";
 import {
   categoriesDuGroupe,
+  categorieVendue,
   compter,
   CATEGORIES,
   GROUPES,
@@ -12,6 +14,7 @@ import {
   type Groupe,
 } from "@/lib/annonces";
 import { lireAnnonces } from "@/lib/annonces-store";
+import { marquerVendue } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +42,7 @@ export default async function TableauDeBord({
 
       {erreur === "conflit" ? (
         <p role="alert" className={`mt-8 ${classeErreur}`}>
-          La suppression n&apos;a pas pu être appliquée. Rechargez la page puis
+          La modification n&apos;a pas pu être appliquée. Rechargez la page puis
           réessayez.
         </p>
       ) : null}
@@ -137,12 +140,14 @@ function LigneAnnonce({ annonce }: { annonce: Annonce }) {
   const prix = CATEGORIES[annonce.categorie].enVente
     ? formaterPrix(annonce.prix)
     : null;
+  // Seules les annonces encore en vente peuvent basculer côté « vendus ».
+  const vendue = categorieVendue(annonce.categorie);
 
   return (
-    <li>
+    <li className="flex flex-col gap-3 rounded-xl border border-petita-gold/25 bg-petita-cream p-3 transition-shadow hover:shadow-md sm:flex-row sm:items-center">
       <a
         href={`/admin/modifier/${annonce.id}`}
-        className="flex items-center gap-4 rounded-xl border border-petita-gold/25 bg-petita-cream p-3 no-underline transition-shadow hover:shadow-md"
+        className="flex min-w-0 flex-grow items-center gap-4 no-underline"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -169,6 +174,13 @@ function LigneAnnonce({ annonce }: { annonce: Annonce }) {
           Modifier →
         </span>
       </a>
+
+      {vendue ? (
+        <form action={marquerVendue} className="shrink-0 sm:pr-1">
+          <input type="hidden" name="id" value={annonce.id} />
+          <BoutonVendu titre={annonce.titre} />
+        </form>
+      ) : null}
     </li>
   );
 }

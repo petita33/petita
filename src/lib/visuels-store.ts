@@ -6,16 +6,17 @@
 import { ecrireJson, lireJson } from "./blob";
 import { normaliserVisuels, type Visuels } from "./visuels";
 
-const CHEMIN_DONNEES = "donnees/visuels.json";
+/** Dossier des versions successives du JSON, la plus récente faisant foi. */
+const DONNEES = "donnees/visuels";
 
 export type InstantaneVisuels = {
   visuels: Visuels;
-  /** ETag du JSON lu, ou `null` si le fichier n'existe pas encore. */
+  /** Version lue, à repasser à l'écriture — `null` si rien n'a été écrit. */
   version: string | null;
 };
 
 export async function lireInstantaneVisuels(): Promise<InstantaneVisuels> {
-  const { contenu, version } = await lireJson(CHEMIN_DONNEES);
+  const { contenu, version } = await lireJson(DONNEES);
   return { visuels: normaliserVisuels(contenu), version };
 }
 
@@ -24,5 +25,5 @@ export async function lireVisuels(): Promise<Visuels> {
 }
 
 export async function ecrireVisuels(visuels: Visuels, version: string | null) {
-  await ecrireJson(CHEMIN_DONNEES, visuels, version);
+  await ecrireJson(DONNEES, visuels, version);
 }
