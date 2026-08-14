@@ -1,5 +1,6 @@
 import { Logo } from "./Logo";
 import { InstagramIcon } from "./InstagramIcon";
+import Link from "next/link";
 
 const linkClasses =
   "flex min-h-12 items-center text-petita-blush no-underline hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold";
@@ -47,12 +48,12 @@ export function Footer() {
 
         <div className="flex flex-col gap-2.5">
           <h3 className="m-0 mb-1.5 font-display text-xl text-petita-cream">Informations</h3>
-          <a href="#contact" className={linkClasses}>
+          <Link href="/mentions-legales" className={linkClasses}>
             Mentions légales
-          </a>
-          <a href="#contact" className={linkClasses}>
-            Conditions de vente
-          </a>
+          </Link>
+          <Link href="/cgu-cgv" className={linkClasses}>
+            CGU / CGV
+          </Link>
           <p className="mb-0 mt-2 text-[15px] text-petita-blush">© 2026 Atelier Petita</p>
         </div>
       </div>
