@@ -160,7 +160,10 @@ export function ChampImages({
                 Vignette
               </figcaption>
             ) : null}
-            <div className="flex items-center justify-between gap-1 p-1.5">
+            {/* `flex-wrap` : à 320 px, trois cibles de 44 px ne tiennent pas
+                sur la largeur d'une vignette — le « ✕ » passe dessous plutôt
+                que de déborder de l'écran. */}
+            <div className="flex flex-wrap items-center justify-between gap-1 p-1.5">
               <div className="flex gap-1">
                 <BoutonIcone
                   label={`Déplacer la photo ${index + 1} vers la gauche`}
@@ -256,7 +259,8 @@ function BoutonIcone({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className="flex h-9 w-9 items-center justify-center rounded-md border border-petita-gold/40 font-display text-base text-petita-brick hover:bg-petita-brick hover:text-petita-cream disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent disabled:hover:text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-petita-gold"
+      // 44 px au doigt, la taille compacte d'origine à la souris.
+      className="flex h-11 w-11 items-center justify-center rounded-md border border-petita-gold/40 font-display text-base text-petita-brick sm:h-9 sm:w-9 hover:bg-petita-brick hover:text-petita-cream disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent disabled:hover:text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-petita-gold"
     >
       {children}
     </button>

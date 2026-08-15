@@ -29,7 +29,7 @@ export function NavigationAdmin() {
       aria-label="Sections de l'administration"
       className="border-b border-petita-gold/25 bg-petita-cream/60"
     >
-      <ul className="mx-auto m-0 flex max-w-5xl list-none flex-wrap gap-2 p-0 px-4 sm:px-6">
+      <ul className="mx-auto m-0 flex max-w-5xl list-none flex-wrap gap-2 p-0 px-3 sm:px-6">
         {ONGLETS.map((onglet) => {
           // `/admin` ne doit pas s'allumer quand on est sur `/admin/visuels`.
           const actif =
@@ -48,10 +48,10 @@ export function NavigationAdmin() {
                     : "border-transparent text-petita-brown hover:border-petita-gold/50 hover:text-petita-brick"
                 }`}
               >
-                <span className="font-display text-[16px] font-semibold">
+                <span className="font-display text-[15px] font-semibold sm:text-[16px]">
                   {onglet.libelle}
                 </span>
-                <span className="text-[13px] text-petita-brown/70">
+                <span className="text-[12px] text-petita-brown/70 sm:text-[13px]">
                   {onglet.aide}
                 </span>
               </Link>

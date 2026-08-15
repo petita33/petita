@@ -77,7 +77,7 @@ export function CarteVisuel({
   return (
     <form
       action={action}
-      className="rounded-xl border border-petita-gold/30 bg-petita-cream/60 p-5 sm:p-6"
+      className="rounded-xl border border-petita-gold/30 bg-petita-cream/60 p-4 sm:p-6"
     >
       <input type="hidden" name="emplacement" value={emplacement} />
       <input type="hidden" name="image" value={image} />
@@ -86,7 +86,7 @@ export function CarteVisuel({
       <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         {/* Repérage : où cette photo apparaît-elle ? */}
         <div>
-          <h3 className="m-0 font-display text-lg font-semibold text-petita-brick">
+          <h3 className="m-0 font-display text-[17px] font-semibold text-petita-brick sm:text-lg">
             {cadre.position}
           </h3>
           <p className="mt-1 text-sm text-petita-brown/80">

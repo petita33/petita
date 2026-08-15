@@ -1,5 +1,14 @@
+import { Suspense } from "react";
 import { BoutonVendu } from "@/components/admin/BoutonVendu";
-import { classeBoutonPrincipal, classeErreur } from "@/components/admin/ui";
+import {
+  StatistiquesEnChargement,
+  StatistiquesFrequentation,
+} from "@/components/admin/StatistiquesFrequentation";
+import {
+  classeBoutonCompact,
+  classeBoutonPrincipal,
+  classeErreur,
+} from "@/components/admin/ui";
 import {
   categoriesDuGroupe,
   categorieVendue,
@@ -30,24 +39,24 @@ export default async function TableauDeBord({
 
   return (
     <>
-      <h1 className="m-0 font-display text-3xl font-semibold text-petita-brick sm:text-4xl">
+      <h1 className="m-0 font-display text-2xl font-semibold text-petita-brick sm:text-4xl">
         Mes annonces
       </h1>
       <div className="my-4 h-0.5 w-16 bg-petita-gold" />
-      <p className="m-0 max-w-[62ch] text-[15px] text-petita-brown">
+      <p className="m-0 max-w-[62ch] text-sm text-petita-brown sm:text-[15px]">
         Les annonces mises en vente et les pièces encore à l&apos;atelier se
         gèrent séparément. Les photos de présentation de la page d&apos;accueil,
         elles, se changent dans l&apos;onglet « Photos de la page d&apos;accueil ».
       </p>
 
       {erreur === "conflit" ? (
-        <p role="alert" className={`mt-8 ${classeErreur}`}>
+        <p role="alert" className={`mt-6 sm:mt-8 ${classeErreur}`}>
           La modification n&apos;a pas pu être appliquée. Rechargez la page puis
           réessayez.
         </p>
       ) : null}
 
-      <div className="mt-12 flex flex-col gap-14">
+      <div className="mt-8 flex flex-col gap-10 sm:mt-12 sm:gap-14">
         {GROUPES_ORDRE.map((groupe) => (
           <SectionGroupe
             key={groupe}
@@ -57,6 +66,12 @@ export default async function TableauDeBord({
             )}
           />
         ))}
+
+        {/* L'API de Vercel répond en dehors du chemin critique : les annonces
+            s'affichent sans attendre les chiffres. */}
+        <Suspense fallback={<StatistiquesEnChargement />}>
+          <StatistiquesFrequentation />
+        </Suspense>
       </div>
     </>
   );
@@ -75,13 +90,13 @@ function SectionGroupe({
   const detaillerCategories = categories.length > 1;
 
   return (
-    <section className="rounded-2xl border border-petita-gold/30 bg-petita-cream/40 p-5 sm:p-7">
-      <div className="flex flex-wrap items-end justify-between gap-5">
+    <section className="rounded-2xl border border-petita-gold/30 bg-petita-cream/40 p-4 sm:p-7">
+      <div className="flex flex-wrap items-end justify-between gap-4 sm:gap-5">
         <div>
-          <h2 className="m-0 font-display text-2xl font-semibold text-petita-brick">
+          <h2 className="m-0 font-display text-xl font-semibold text-petita-brick sm:text-2xl">
             {GROUPES[groupe].titre}
           </h2>
-          <p className="mb-0 mt-2 text-[15px] text-petita-brown">
+          <p className="mb-0 mt-2 text-sm text-petita-brown sm:text-[15px]">
             {annonces.length === 0
               ? "Rien pour le moment."
               : `${compter(annonces.length, GROUPES[groupe].nom)} en ligne.`}
@@ -89,13 +104,13 @@ function SectionGroupe({
         </div>
         <a
           href={`/admin/nouvelle?groupe=${groupe}`}
-          className={classeBoutonPrincipal}
+          className={`${classeBoutonPrincipal} w-full sm:w-auto`}
         >
           {GROUPES[groupe].creer}
         </a>
       </div>
 
-      <div className="mt-8 flex flex-col gap-10">
+      <div className="mt-6 flex flex-col gap-8 sm:mt-8 sm:gap-10">
         {categories.map((categorie) => {
           const duGroupe = trierParDateDecroissante(
             annonces.filter((annonce) => annonce.categorie === categorie),
@@ -104,21 +119,21 @@ function SectionGroupe({
           return (
             <div key={categorie}>
               {detaillerCategories ? (
-                <h3 className="m-0 flex flex-wrap items-baseline gap-3 font-display text-xl font-semibold text-petita-brick">
+                <h3 className="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-lg font-semibold text-petita-brick sm:text-xl">
                   {CATEGORIES[categorie].label}
-                  <span className="font-body text-sm font-normal text-petita-brown/70">
+                  <span className="font-body text-[13px] font-normal text-petita-brown/70 sm:text-sm">
                     {compter(duGroupe.length, "annonce")} ·{" "}
                     {CATEGORIES[categorie].href}
                   </span>
                 </h3>
               ) : (
-                <p className="m-0 font-body text-sm text-petita-brown/70">
+                <p className="m-0 font-body text-[13px] text-petita-brown/70 sm:text-sm">
                   {CATEGORIES[categorie].href}
                 </p>
               )}
 
               {duGroupe.length === 0 ? (
-                <p className="mt-4 rounded-lg border border-dashed border-petita-gold/40 px-5 py-6 text-[15px] text-petita-brown/70">
+                <p className="mt-4 rounded-lg border border-dashed border-petita-gold/40 px-4 py-5 text-sm text-petita-brown/70 sm:px-5 sm:py-6 sm:text-[15px]">
                   Rien ici pour l&apos;instant.
                 </p>
               ) : (
@@ -142,45 +157,66 @@ function LigneAnnonce({ annonce }: { annonce: Annonce }) {
     : null;
   // Seules les annonces encore en vente peuvent basculer côté « vendus ».
   const vendue = categorieVendue(annonce.categorie);
+  const modifier = `/admin/modifier/${annonce.id}`;
 
   return (
     <li className="flex flex-col gap-3 rounded-xl border border-petita-gold/25 bg-petita-cream p-3 transition-shadow hover:shadow-md sm:flex-row sm:items-center">
+      {/* Au téléphone la carte s'empile — photo, puis texte — parce que trois
+          colonnes sur 375 px écrasent le titre au point de rendre deux annonces
+          indistinguables. À partir de `sm`, la rangée d'origine revient. */}
       <a
-        href={`/admin/modifier/${annonce.id}`}
-        className="flex min-w-0 flex-grow items-center gap-4 no-underline"
+        href={modifier}
+        className="flex min-w-0 flex-grow flex-col gap-3 no-underline sm:flex-row sm:items-center sm:gap-4"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={annonce.images[0]}
           alt=""
-          className="h-20 w-24 shrink-0 rounded-lg object-cover"
+          className="h-40 w-full shrink-0 rounded-lg object-cover sm:h-20 sm:w-24"
         />
         <span className="flex min-w-0 flex-grow flex-col gap-1">
-          <span className="truncate font-display text-[17px] font-semibold text-petita-brick">
+          <span className="line-clamp-2 font-display text-base font-semibold text-petita-brick sm:truncate sm:text-[17px]">
             {annonce.titre}
           </span>
-          <span className="truncate text-sm text-petita-brown/80">
+          <span className="line-clamp-2 text-[13px] text-petita-brown/80 sm:truncate sm:text-sm">
             {annonce.description || "Sans description"}
           </span>
-          <span className="font-display text-sm text-petita-brown/70">
+          {/* Le prix vient d'`Intl` avec une espace insécable : « 180 € » ne se
+              coupe pas en fin de ligne. */}
+          <span className="font-display text-[13px] text-petita-brown/70 sm:text-sm">
             {compter(annonce.images.length, "photo")}
             {prix ? ` · ${prix}` : ""}
           </span>
         </span>
         <span
           aria-hidden="true"
-          className="shrink-0 pr-2 font-display text-petita-gold-fonce"
+          className="hidden shrink-0 pr-2 font-display text-petita-gold-fonce sm:block"
         >
           Modifier →
         </span>
       </a>
 
-      {vendue ? (
-        <form action={marquerVendue} className="shrink-0 sm:pr-1">
-          <input type="hidden" name="id" value={annonce.id} />
-          <BoutonVendu titre={annonce.titre} />
-        </form>
-      ) : null}
+      {/* `sm:contents` fait disparaître ce conteneur de la mise en page au-delà
+          du mobile : le formulaire redevient un enfant direct de la carte, à sa
+          place d'origine, sans dupliquer le bouton dans le DOM. */}
+      <div className="flex flex-wrap gap-2 sm:contents">
+        <a
+          href={modifier}
+          className={`${classeBoutonCompact} grow basis-44 sm:hidden`}
+        >
+          Modifier
+        </a>
+
+        {vendue ? (
+          <form
+            action={marquerVendue}
+            className="grow basis-44 sm:grow-0 sm:shrink-0 sm:basis-auto sm:pr-1"
+          >
+            <input type="hidden" name="id" value={annonce.id} />
+            <BoutonVendu titre={annonce.titre} classe="w-full sm:w-auto" />
+          </form>
+        ) : null}
+      </div>
     </li>
   );
 }
