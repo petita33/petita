@@ -1,12 +1,16 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { after } from "next/server";
 import { estUrlBlob, supprimerImages } from "@/lib/blob";
 import { balayerImagesOrphelines } from "@/lib/menage";
 import { estFormat } from "@/lib/formats";
 import { DOSSIER_VISUELS, estEmplacement, type Visuels } from "@/lib/visuels";
-import { ecrireVisuels, lireInstantaneVisuels } from "@/lib/visuels-store";
+import {
+  ecrireVisuels,
+  lireInstantaneVisuels,
+  TAG_VISUELS,
+} from "@/lib/visuels-store";
 import { sessionActive } from "@/lib/session";
 
 export type EtatVisuel = { erreur?: string; succes?: string } | undefined;
@@ -71,6 +75,7 @@ export async function enregistrerVisuel(
   // Ramasse au passage les photos envoyées puis abandonnées sans enregistrement.
   after(balayerImagesOrphelines);
 
+  updateTag(TAG_VISUELS);
   revalidatePath("/");
   revalidatePath("/admin/visuels");
 

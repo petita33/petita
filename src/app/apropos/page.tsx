@@ -1,16 +1,34 @@
-import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { JsonLd } from "@/components/JsonLd";
+import {
+  creerMetadataPage,
+  filArianeJsonLd,
+  grapheSchema,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Notre histoire — Atelier Petita",
-  description:
-    "Un couple passionné, deux maisons, des vide-greniers et des brocantes… Découvrez l'histoire derrière Atelier Petita.",
-};
+const DESCRIPTION =
+  "Un couple passionné, deux maisons, des vide-greniers et des brocantes… Découvrez l'histoire derrière Atelier Petita.";
+
+export const metadata = creerMetadataPage({
+  titre: "Notre histoire — Atelier Petita",
+  description: DESCRIPTION,
+  chemin: "/apropos",
+});
 
 export default function Apropos() {
   return (
     <div className="overflow-x-hidden">
+      <JsonLd
+        data={grapheSchema(
+          filArianeJsonLd([
+            { nom: "Accueil", chemin: "/" },
+            { nom: "Notre histoire", chemin: "/apropos" },
+          ]),
+        )}
+      />
       <Header />
 
       <main>
@@ -21,9 +39,9 @@ export default function Apropos() {
               aria-label="Fil d'Ariane"
               className="mb-6 flex items-center gap-2 font-display text-sm text-petita-brown/70"
             >
-              <a href="/" className="no-underline hover:text-petita-brick">
+              <Link href="/" className="no-underline hover:text-petita-brick">
                 Accueil
-              </a>
+              </Link>
               <span aria-hidden="true">›</span>
               <span className="text-petita-brick">Notre histoire</span>
             </nav>
@@ -40,9 +58,12 @@ export default function Apropos() {
 
             {/* Photo */}
             <div className="overflow-hidden rounded-2xl shadow-[0_24px_60px_rgba(126,43,38,0.15)]">
-              <img
+              <Image
                 src="/photo-apropos.avif"
                 alt="Un couple passionné par les luminaires anciens et les vieux meubles"
+                width={739}
+                height={820}
+                sizes="(min-width: 1024px) 50vw, 100vw"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -63,18 +84,18 @@ export default function Apropos() {
                   Des rencontres humaines, du partage et <span className="font-bold">SURTOUT</span>
                 </p>
                 <p className="m-0 text-2xl font-semibold text-petita-gold-fonce">
-                  de l'amour…
+                  de l’amour…
                 </p>
               </div>
 
               <div className="mt-4 h-0.5 w-16 bg-petita-gold" />
 
-              <a
+              <Link
                 href="/#contact"
                 className="inline-flex w-fit min-h-12 items-center rounded-md bg-petita-brick px-8 py-3.5 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
               >
                 Nous contacter
-              </a>
+              </Link>
             </div>
 
           </div>

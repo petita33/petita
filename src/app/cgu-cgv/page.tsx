@@ -1,13 +1,21 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { JsonLd } from "@/components/JsonLd";
+import {
+  creerMetadataPage,
+  filArianeJsonLd,
+  grapheSchema,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "CGU / CGV — Atelier Petita",
-  description:
-    "Consultez les conditions générales d’utilisation et de vente d’Atelier Petita.",
-};
+const DESCRIPTION =
+  "Consultez les conditions générales d’utilisation et de vente d’Atelier Petita.";
+
+export const metadata = creerMetadataPage({
+  titre: "CGU / CGV — Atelier Petita",
+  description: DESCRIPTION,
+  chemin: "/cgu-cgv",
+});
 
 const sectionClasses = "flex flex-col gap-3";
 const headingClasses =
@@ -17,6 +25,14 @@ const listClasses = "m-0 flex list-disc flex-col gap-2 pl-6";
 export default function CguCgv() {
   return (
     <div className="overflow-x-hidden">
+      <JsonLd
+        data={grapheSchema(
+          filArianeJsonLd([
+            { nom: "Accueil", chemin: "/" },
+            { nom: "CGU / CGV", chemin: "/cgu-cgv" },
+          ]),
+        )}
+      />
       <Header />
 
       <main>

@@ -1,18 +1,35 @@
-import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ContactForm } from "@/components/ContactForm";
 import { InstagramIcon } from "@/components/InstagramIcon";
+import { JsonLd } from "@/components/JsonLd";
+import {
+  creerMetadataPage,
+  filArianeJsonLd,
+  grapheSchema,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Contact — Atelier Petita",
-  description:
-    "Une lampe à remettre en état, un meuble à relooker, une envie encore floue ? Écrivez-nous, nous répondons sous 48 heures.",
-};
+const DESCRIPTION =
+  "Une lampe à restaurer ou un meuble à relooker autour de Cestas et Bordeaux ? Écrivez à l'Atelier Petita, réponse sous 48 heures.";
+
+export const metadata = creerMetadataPage({
+  titre: "Contact — Atelier Petita",
+  description: DESCRIPTION,
+  chemin: "/contact",
+});
 
 export default function Contact() {
   return (
     <div className="overflow-x-hidden">
+      <JsonLd
+        data={grapheSchema(
+          filArianeJsonLd([
+            { nom: "Accueil", chemin: "/" },
+            { nom: "Contact", chemin: "/contact" },
+          ]),
+        )}
+      />
       <Header />
 
       <main>
@@ -23,9 +40,9 @@ export default function Contact() {
               aria-label="Fil d'Ariane"
               className="mb-6 flex items-center gap-2 font-display text-sm text-petita-brown/70"
             >
-              <a href="/" className="no-underline hover:text-petita-brick">
+              <Link href="/" className="no-underline hover:text-petita-brick">
                 Accueil
-              </a>
+              </Link>
               <span aria-hidden="true">›</span>
               <span className="text-petita-brick">Contact</span>
             </nav>
@@ -45,7 +62,7 @@ export default function Contact() {
             className="flex flex-col items-center gap-5 rounded-xl border border-petita-gold/50 bg-petita-blush/60 p-6 text-center sm:p-10"
           >
             <h2 className="m-0 font-display text-[26px] font-semibold text-petita-brick sm:text-3xl">
-              Suivez l'atelier
+              Suivez l’atelier
             </h2>
             <p className="m-0 max-w-[46ch]">
               Nos dernières trouvailles, les restaurations en cours et les pièces tout juste
@@ -63,6 +80,16 @@ export default function Contact() {
             </a>
 
             <div className="my-1 h-0.5 w-15 bg-petita-gold" />
+
+            <address className="not-italic text-petita-brown">
+              <span className="block font-display text-lg font-semibold text-petita-brick">
+                Atelier à Cestas, en Gironde
+              </span>
+              <span className="block">27 allée du Carretey — sur rendez-vous</span>
+              <span className="block text-sm">
+                Déplacements possibles dans la métropole bordelaise.
+              </span>
+            </address>
 
             <div className="flex flex-col items-center gap-1.5">
               <a

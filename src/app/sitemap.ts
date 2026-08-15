@@ -4,9 +4,9 @@ import { lireAnnonces } from "@/lib/annonces-store";
 
 const URL_SITE = "https://atelier-petita.fr";
 
-// Les annonces peuvent changer sans nouveau déploiement : le sitemap doit les
-// relire pour que Google découvre rapidement les créations publiées ensuite.
-export const dynamic = "force-dynamic";
+// Les annonces peuvent changer sans nouveau déploiement : l'admin invalide ce
+// sitemap à chaque mutation, avec une échéance horaire de sécurité.
+export const revalidate = 3600;
 
 function url(chemin: string) {
   return new URL(chemin, URL_SITE).toString();
@@ -69,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const pagesAnnonces: MetadataRoute.Sitemap = annonces.map((annonce) => ({
-    url: url(hrefAnnonce(annonce.id)),
+    url: url(hrefAnnonce(annonce)),
     lastModified: annonce.modifieLe,
     changeFrequency: annonce.categorie.endsWith("-vendus") ? "yearly" : "weekly",
     priority: annonce.categorie.endsWith("-vendus") ? 0.5 : 0.8,

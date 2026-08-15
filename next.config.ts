@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Le store accepte les lectures séquentielles de prerender, mais protège
+    // ses fichiers JSON contre les rafales lancées par plusieurs workers.
+    cpus: 1,
+    staticGenerationMaxConcurrency: 1,
+    staticGenerationMinPagesPerWorker: 1000,
+  },
   images: {
     remotePatterns: [
       {

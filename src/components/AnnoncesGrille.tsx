@@ -57,7 +57,7 @@ function CarteAnnonce({ annonce }: { annonce: Annonce }) {
             cliquable sans imbriquer les commandes du carrousel dans un <a>.
           */}
           <Link
-            href={hrefAnnonce(annonce.id)}
+            href={hrefAnnonce(annonce)}
             className="text-petita-brick no-underline after:absolute after:inset-0 after:content-[''] hover:text-petita-rose focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
           >
             {annonce.titre}

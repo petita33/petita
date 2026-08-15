@@ -26,7 +26,8 @@
  * elle voit l'écriture immédiatement.
  */
 
-import { del, get, list, put } from "@vercel/blob";
+import { del, list, put } from "@vercel/blob";
+import { get as requeteHttps } from "node:https";
 
 export class ConflitDeVersion extends Error {
   constructor() {
@@ -53,7 +54,11 @@ export function blobConfigure() {
 
 const EXTENSION = ".json";
 
-type Version = { pathname: string; uploadedAt: Date };
+type Version = {
+  pathname: string;
+  uploadedAt: Date;
+  downloadUrl: string;
+};
 
 /** Les versions d'un jeu de données, la plus récente en tête. */
 async function listerVersions(dossier: string): Promise<Version[]> {
@@ -63,7 +68,11 @@ async function listerVersions(dossier: string): Promise<Version[]> {
   do {
     const page = await list({ prefix: `${dossier}/`, cursor: curseur });
     for (const blob of page.blobs) {
-      versions.push({ pathname: blob.pathname, uploadedAt: blob.uploadedAt });
+      versions.push({
+        pathname: blob.pathname,
+        uploadedAt: blob.uploadedAt,
+        downloadUrl: blob.downloadUrl,
+      });
     }
     curseur = page.hasMore ? page.cursor : undefined;
   } while (curseur);
@@ -77,25 +86,55 @@ async function listerVersions(dossier: string): Promise<Version[]> {
   );
 }
 
-async function lireVersion(pathname: string): Promise<unknown | undefined> {
-  const reponse = await get(pathname, { access: "public" });
+function telecharger(url: string) {
+  return new Promise<{ statut: number; texte: string }>((resolve, reject) => {
+    const requete = requeteHttps(url, (reponse) => {
+      const morceaux: Buffer[] = [];
+      reponse.on("data", (morceau: Buffer) => morceaux.push(morceau));
+      reponse.on("end", () => {
+        resolve({
+          statut: reponse.statusCode ?? 0,
+          texte: Buffer.concat(morceaux).toString("utf8"),
+        });
+      });
+    });
+    requete.setTimeout(15_000, () => {
+      requete.destroy(new Error("Délai de lecture du store dépassé."));
+    });
+    requete.on("error", reject);
+  });
+}
+
+async function lireVersion(version: Version): Promise<unknown | undefined> {
+  // `url` peut être protégée par Vercel même sur un store public ; `downloadUrl`
+  // est l'adresse de lecture officielle renvoyée par `list()` et reste publique.
+  // On passe par HTTPS natif : le `fetch` instrumenté de Next entre ici en
+  // conflit avec le cache applicatif qui enveloppe déjà cette lecture.
+  let reponse: { statut: number; texte: string } | undefined;
+  for (let tentative = 0; tentative < 3; tentative += 1) {
+    reponse = await telecharger(version.downloadUrl);
+    // Le CDN de ce store alterne ponctuellement entre un nœud valide et un
+    // nœud qui répond 403. Une relance immédiate atteint le nœud sain.
+    if (reponse.statut !== 403) break;
+  }
+
+  if (!reponse) {
+    throw new Error(`Lecture de ${version.pathname} impossible.`);
+  }
   // Version supprimée par le ménage d'une écriture concurrente : l'appelant se
   // rabattra sur la précédente.
-  if (!reponse) return undefined;
+  if (reponse.statut === 404) return undefined;
 
-  // 304 supposerait un `ifNoneMatch`, que nous ne posons jamais ; sans corps à
-  // lire, il n'y a rien à faire de mieux que de le signaler.
-  if (reponse.statusCode !== 200) {
+  if (reponse.statut !== 200) {
     throw new Error(
-      `Lecture de ${pathname} inattendue (HTTP ${reponse.statusCode}).`,
+      `Lecture de ${version.pathname} inattendue (HTTP ${reponse.statut}).`,
     );
   }
 
-  const texte = await new Response(reponse.stream).text();
   try {
-    return JSON.parse(texte);
+    return JSON.parse(reponse.texte);
   } catch {
-    throw new Error(`Le fichier ${pathname} n'est pas un JSON valide.`);
+    throw new Error(`Le fichier ${version.pathname} n'est pas un JSON valide.`);
   }
 }
 
@@ -119,7 +158,7 @@ export async function lireJson(dossier: string): Promise<InstantaneJson> {
   if (versions.length === 0) return lireJsonHerite(dossier);
 
   for (const version of versions) {
-    const contenu = await lireVersion(version.pathname);
+    const contenu = await lireVersion(version);
     if (contenu !== undefined) return { contenu, version: version.pathname };
   }
 
@@ -135,7 +174,16 @@ export async function lireJson(dossier: string): Promise<InstantaneJson> {
  * première version, après quoi plus rien ne le lit.
  */
 async function lireJsonHerite(dossier: string): Promise<InstantaneJson> {
-  const contenu = await lireVersion(`${dossier}${EXTENSION}`);
+  const pathname = `${dossier}${EXTENSION}`;
+  const page = await list({ prefix: pathname });
+  const blob = page.blobs.find((candidat) => candidat.pathname === pathname);
+  if (!blob) return { contenu: null, version: null };
+
+  const contenu = await lireVersion({
+    pathname: blob.pathname,
+    uploadedAt: blob.uploadedAt,
+    downloadUrl: blob.downloadUrl,
+  });
   return { contenu: contenu ?? null, version: null };
 }
 

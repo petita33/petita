@@ -32,18 +32,18 @@ export function Footer() {
 
         <nav aria-label="Plan du site" className="flex flex-col gap-2.5">
           <h3 className="m-0 mb-1.5 font-display text-xl text-petita-cream">Plan du site</h3>
-          <a href="#luminaires" className={linkClasses}>
+          <Link href="/luminaires/en-vente" className={linkClasses}>
             Voir tous les luminaires
-          </a>
-          <a href="#meubles" className={linkClasses}>
+          </Link>
+          <Link href="/meubles/en-vente" className={linkClasses}>
             Voir tous les meubles
-          </a>
-          <a href="/en-cours" className={linkClasses}>
+          </Link>
+          <Link href="/en-cours" className={linkClasses}>
             En cours de rénovation
-          </a>
-          <a href="/apropos" className={linkClasses}>
+          </Link>
+          <Link href="/apropos" className={linkClasses}>
             Notre histoire
-          </a>
+          </Link>
         </nav>
 
         <div className="flex flex-col gap-2.5">

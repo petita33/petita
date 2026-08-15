@@ -1,13 +1,21 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { JsonLd } from "@/components/JsonLd";
+import {
+  creerMetadataPage,
+  filArianeJsonLd,
+  grapheSchema,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Mentions légales — Atelier Petita",
-  description:
-    "Consultez les mentions légales d’Atelier Petita : éditeur, propriété intellectuelle, données personnelles et responsabilités.",
-};
+const DESCRIPTION =
+  "Consultez les mentions légales d’Atelier Petita : éditeur, propriété intellectuelle, données personnelles et responsabilités.";
+
+export const metadata = creerMetadataPage({
+  titre: "Mentions légales — Atelier Petita",
+  description: DESCRIPTION,
+  chemin: "/mentions-legales",
+});
 
 const sectionClasses = "flex flex-col gap-3";
 const headingClasses =
@@ -16,6 +24,14 @@ const headingClasses =
 export default function MentionsLegales() {
   return (
     <div className="overflow-x-hidden">
+      <JsonLd
+        data={grapheSchema(
+          filArianeJsonLd([
+            { nom: "Accueil", chemin: "/" },
+            { nom: "Mentions légales", chemin: "/mentions-legales" },
+          ]),
+        )}
+      />
       <Header />
 
       <main>

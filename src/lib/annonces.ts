@@ -173,9 +173,41 @@ export type Annonce = {
   modifieLe: string;
 };
 
-/** Chemin de la page de détail d'une annonce. */
-export function hrefAnnonce(id: string) {
-  return `/annonces/${id}`;
+/** Segment d'URL lisible, stable grâce au préfixe unique de l'identifiant. */
+export function segmentAnnonce(
+  annonce: Pick<Annonce, "id" | "titre">,
+) {
+  const titre = annonce.titre
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " et ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 72)
+    .replace(/-+$/g, "");
+  const identifiantCourt = annonce.id.slice(0, 8).toLowerCase();
+
+  return `${titre || "piece-unique"}-${identifiantCourt}`;
+}
+
+/** Chemin canonique de la page de détail d'une annonce. */
+export function hrefAnnonce(annonce: Pick<Annonce, "id" | "titre">) {
+  return `/annonces/${segmentAnnonce(annonce)}`;
+}
+
+/**
+ * Extrait l'identifiant d'une ancienne URL UUID ou le préfixe d'une URL
+ * lisible. Les autres formes sont refusées pour éviter les correspondances
+ * approximatives.
+ */
+export function identifiantDepuisSegmentAnnonce(segment: string) {
+  const uuid = segment.match(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  );
+  if (uuid) return uuid[0].toLowerCase();
+
+  return segment.match(/-([0-9a-f]{8})$/i)?.[1].toLowerCase() ?? null;
 }
 
 /**

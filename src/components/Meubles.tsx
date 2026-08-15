@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Visuels } from "@/lib/visuels";
 import { VisuelFixe } from "./VisuelFixe";
 
@@ -15,14 +16,14 @@ export function Meubles({ visuels }: { visuels: Visuels }) {
           <div className="mx-auto my-5 h-0.5 w-15 bg-petita-gold" />
           <p className="mx-auto mb-7.5 max-w-[42ch]">
             Du ponçage à la dernière couche de cire, nous redonnons vie et modernité à des meubles
-            chargés d'histoire…
+            chargés d’histoire…
           </p>
-          <a
+          <Link
             href="/meubles/en-vente"
             className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-7 py-4 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
           >
             Explorez nos meubles
-          </a>
+          </Link>
         </div>
         <div className="overflow-hidden rounded-xl">
           <VisuelFixe
