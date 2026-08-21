@@ -20,7 +20,7 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-petita-blush">
       {connecte ? (
         <header className="border-b border-petita-gold/35 bg-petita-cream">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-3 py-3 sm:gap-4 sm:px-6 sm:py-4">
             <a
               href="/admin"
               className="flex min-h-12 items-center gap-3 no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-petita-gold"
@@ -60,7 +60,7 @@ export default async function AdminLayout({
 
       {connecte ? <NavigationAdmin /> : null}
 
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+      <main className="mx-auto max-w-5xl px-3 py-8 sm:px-6 sm:py-14">
         {children}
       </main>
     </div>

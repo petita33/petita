@@ -37,6 +37,10 @@ export function Services() {
           Nos services
         </h2>
         <div className="mt-5 h-0.5 w-15 bg-petita-gold" />
+        <p className="mb-0 mt-5 max-w-[62ch] text-center text-petita-brown">
+          Installés à Cestas, nous restaurons luminaires et meubles anciens
+          pour les particuliers en Gironde et dans la métropole bordelaise.
+        </p>
       </div>
       <div data-reveal className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5 sm:gap-8">
         {SERVICES.map((service) => (

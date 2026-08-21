@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import {
@@ -10,7 +10,11 @@ import {
   hrefAnnonce,
   type Annonce,
 } from "@/lib/annonces";
-import { ecrireAnnonces, lireInstantane } from "@/lib/annonces-store";
+import {
+  ecrireAnnonces,
+  lireInstantane,
+  TAG_ANNONCES,
+} from "@/lib/annonces-store";
 import { normaliserFormat } from "@/lib/formats";
 import { supprimerImages } from "@/lib/blob";
 import { balayerImagesOrphelines } from "@/lib/menage";
@@ -150,16 +154,18 @@ export async function enregistrerAnnonce(
 
   let suivantes: Annonce[];
   let imagesADetruire: string[] = [];
+  let precedente: Annonce | undefined;
+  let annonceEnregistree: Annonce;
 
   if (id) {
     const index = annonces.findIndex((annonce) => annonce.id === id);
     if (index === -1) return { erreur: "Cette annonce n'existe plus." };
 
-    const precedente = annonces[index];
+    precedente = annonces[index];
     imagesADetruire = precedente.images.filter((url) => !images.includes(url));
 
     suivantes = [...annonces];
-    suivantes[index] = {
+    annonceEnregistree = {
       ...precedente,
       titre,
       description,
@@ -170,22 +176,21 @@ export async function enregistrerAnnonce(
       lienExterne,
       modifieLe: maintenant,
     };
+    suivantes[index] = annonceEnregistree;
   } else {
-    suivantes = [
-      ...annonces,
-      {
-        id: crypto.randomUUID(),
-        titre,
-        description,
-        categorie,
-        prix,
-        images,
-        format,
-        lienExterne,
-        creeLe: maintenant,
-        modifieLe: maintenant,
-      },
-    ];
+    annonceEnregistree = {
+      id: crypto.randomUUID(),
+      titre,
+      description,
+      categorie,
+      prix,
+      images,
+      format,
+      lienExterne,
+      creeLe: maintenant,
+      modifieLe: maintenant,
+    };
+    suivantes = [...annonces, annonceEnregistree];
   }
 
   try {
@@ -203,7 +208,7 @@ export async function enregistrerAnnonce(
   );
   // Ramasse au passage les photos envoyées puis abandonnées sans enregistrement.
   after(balayerImagesOrphelines);
-  rafraichir(id || null, categorie, id ? annonces.find((a) => a.id === id)?.categorie : undefined);
+  rafraichir(annonceEnregistree, precedente);
   redirect("/admin");
 }
 
@@ -226,11 +231,12 @@ export async function marquerVendue(donnees: FormData) {
   if (!vendue) redirect("/admin");
 
   const suivantes = [...annonces];
-  suivantes[index] = {
+  const miseAJour: Annonce = {
     ...precedente,
     categorie: vendue,
     modifieLe: new Date().toISOString(),
   };
+  suivantes[index] = miseAJour;
 
   try {
     await ecrireAnnonces(suivantes, version);
@@ -239,7 +245,7 @@ export async function marquerVendue(donnees: FormData) {
     redirect("/admin?erreur=conflit");
   }
 
-  rafraichir(precedente.id, precedente.categorie, vendue);
+  rafraichir(miseAJour, precedente);
   redirect("/admin");
 }
 
@@ -263,15 +269,28 @@ export async function supprimerAnnonce(donnees: FormData) {
 
   await supprimerImages(cible.images, `annonce supprimée ${cible.id}`);
   after(balayerImagesOrphelines);
-  rafraichir(cible.id, cible.categorie);
+  rafraichir(null, cible);
   redirect("/admin");
 }
 
-/** Régénère l'admin, la page de détail et la (ou les) page(s) de liste concernée(s). */
-function rafraichir(id: string | null, ...categories: (string | undefined)[]) {
+/** Régénère toutes les vues publiques dépendant du catalogue modifié. */
+function rafraichir(annonce: Annonce | null, precedente?: Annonce) {
+  updateTag(TAG_ANNONCES);
   revalidatePath("/admin");
-  if (id) revalidatePath(hrefAnnonce(id));
-  for (const categorie of new Set(categories)) {
+  revalidatePath("/");
+  revalidatePath("/sitemap.xml");
+
+  for (const cible of [annonce, precedente]) {
+    if (!cible) continue;
+    revalidatePath(hrefAnnonce(cible));
+    // Les anciennes URLs UUID restent des portes d'entrée permanentes.
+    revalidatePath(`/annonces/${cible.id}`);
+  }
+
+  for (const categorie of new Set([
+    annonce?.categorie,
+    precedente?.categorie,
+  ])) {
     if (estCategorie(categorie)) revalidatePath(CATEGORIES[categorie].href);
   }
 }

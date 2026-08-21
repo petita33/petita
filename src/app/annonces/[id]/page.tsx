@@ -1,19 +1,38 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import Link from "next/link";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { GalerieAnnonce } from "@/components/GalerieAnnonce";
+import { JsonLd } from "@/components/JsonLd";
 import {
   CATEGORIES,
   formaterPrix,
+  hrefAnnonce,
   nomPlateforme,
+  segmentAnnonce,
   type Annonce,
 } from "@/lib/annonces";
-import { lireAnnonce } from "@/lib/annonces-store";
+import { lireAnnonce, lireAnnonces } from "@/lib/annonces-store";
+import {
+  creerMetadataPage,
+  descriptionMeta,
+  filArianeJsonLd,
+  grapheSchema,
+  produitJsonLd,
+} from "@/lib/seo";
 
-// Lue à chaque requête, comme les pages de liste : une modification est
-// visible immédiatement.
-export const dynamic = "force-dynamic";
+// La copie CDN expire au bout d'une heure et l'admin l'invalide à chaque
+// modification ; les URLs inconnues sont générées à la première visite.
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const annonces = await lireAnnonces();
+
+  return annonces.map((annonce) => ({
+    id: segmentAnnonce(annonce),
+  }));
+}
 
 export async function generateMetadata({
   params,
@@ -24,17 +43,16 @@ export async function generateMetadata({
   const annonce = await lireAnnonce(id);
   if (!annonce) return { title: "Annonce introuvable — Atelier Petita" };
 
-  return {
-    title: `${annonce.titre} — Atelier Petita`,
-    description:
-      annonce.description.slice(0, 300) ||
-      `${annonce.titre}, pièce unique restaurée à la main par l'Atelier Petita.`,
-    openGraph: {
-      title: annonce.titre,
-      description: annonce.description.slice(0, 300),
-      images: annonce.images.slice(0, 1),
-    },
-  };
+  const repli =
+    `${annonce.titre}, pièce unique restaurée à la main par l'Atelier Petita.`;
+  const description = descriptionMeta(annonce.description, repli);
+
+  return creerMetadataPage({
+    titre: `${annonce.titre} — Atelier Petita`,
+    description,
+    chemin: hrefAnnonce(annonce),
+    image: annonce.images[0],
+  });
 }
 
 export default async function PageAnnonce({
@@ -45,6 +63,7 @@ export default async function PageAnnonce({
   const { id } = await params;
   const annonce = await lireAnnonce(id);
   if (!annonce) notFound();
+  if (id !== segmentAnnonce(annonce)) permanentRedirect(hrefAnnonce(annonce));
 
   const categorie = CATEGORIES[annonce.categorie];
   const prix = categorie.enVente ? formaterPrix(annonce.prix) : null;
@@ -52,6 +71,16 @@ export default async function PageAnnonce({
 
   return (
     <div className="overflow-x-hidden">
+      <JsonLd
+        data={grapheSchema(
+          filArianeJsonLd([
+            { nom: "Accueil", chemin: "/" },
+            { nom: categorie.label, chemin: categorie.href },
+            { nom: annonce.titre, chemin: hrefAnnonce(annonce) },
+          ]),
+          produitJsonLd(annonce),
+        )}
+      />
       <Header />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
@@ -59,13 +88,13 @@ export default async function PageAnnonce({
           aria-label="Fil d'Ariane"
           className="mb-8 flex flex-wrap items-center gap-2 font-display text-sm text-petita-brown/70"
         >
-          <a href="/" className="no-underline hover:text-petita-brick">
+          <Link href="/" className="no-underline hover:text-petita-brick">
             Accueil
-          </a>
+          </Link>
           <span aria-hidden="true">›</span>
-          <a href={categorie.href} className="no-underline hover:text-petita-brick">
+          <Link href={categorie.href} className="no-underline hover:text-petita-brick">
             {categorie.label}
-          </a>
+          </Link>
           <span aria-hidden="true">›</span>
           <span className="text-petita-brick">{annonce.titre}</span>
         </nav>
@@ -97,9 +126,17 @@ export default async function PageAnnonce({
             ) : null}
 
             {annonce.description ? (
-              <p className="m-0 whitespace-pre-line text-petita-brown">
-                {annonce.description}
-              </p>
+              <section aria-labelledby="description-piece">
+                <h2
+                  id="description-piece"
+                  className="mb-3 mt-0 font-display text-2xl font-semibold text-petita-brick"
+                >
+                  À propos de cette pièce
+                </h2>
+                <p className="m-0 whitespace-pre-line text-petita-brown">
+                  {annonce.description}
+                </p>
+              </section>
             ) : null}
 
             <BoutonsAction annonce={annonce} enVente={categorie.enVente} />
@@ -113,12 +150,12 @@ export default async function PageAnnonce({
         </div>
 
         <div className="mt-14 border-t border-petita-gold/25 pt-8">
-          <a
+          <Link
             href={categorie.href}
             className="font-display text-[15px] text-petita-brown no-underline hover:text-petita-brick"
           >
             ← Retour à « {categorie.label} »
-          </a>
+          </Link>
         </div>
       </main>
 
@@ -152,7 +189,7 @@ function BoutonsAction({
         </a>
       ) : null}
 
-      <a
+      <Link
         href="/#contact"
         className={`inline-flex min-h-12 items-center rounded-md px-7 py-3.5 font-display text-lg no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold ${
           annonce.lienExterne
@@ -161,7 +198,7 @@ function BoutonsAction({
         }`}
       >
         Nous contacter
-      </a>
+      </Link>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Visuels } from "@/lib/visuels";
 import { VisuelFixe } from "./VisuelFixe";
 
@@ -24,12 +25,12 @@ export function Luminaires({ visuels }: { visuels: Visuels }) {
             Nous sélectionnons avec passion des luminaires anciens que nous restaurons et sublimons.
             Chaque pièce est unique.
           </p>
-          <a
-            href="#ventes"
+          <Link
+            href="/luminaires/en-vente"
             className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-7 py-4 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
           >
             Explorez nos luminaires
-          </a>
+          </Link>
         </div>
         <div className="overflow-hidden rounded-xl">
           <VisuelFixe

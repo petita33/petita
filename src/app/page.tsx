@@ -6,15 +6,26 @@ import { Meubles } from "@/components/Meubles";
 import { Gallery } from "@/components/Gallery";
 import { Testimonials } from "@/components/Testimonials";
 import { Reassurance } from "@/components/Reassurance";
+import { Services } from "@/components/Services";
 import { ContactForm } from "@/components/ContactForm";
 import { Footer } from "@/components/Footer";
 import { lireVisuels } from "@/lib/visuels-store";
 import { lireAnnonces } from "@/lib/annonces-store";
 import { dernieresVentes } from "@/lib/annonces";
+import { creerMetadataPage } from "@/lib/seo";
 
-// Les photos fixes et les annonces sont lues à chaque requête pour qu'un
-// changement depuis l'administration soit visible immédiatement.
-export const dynamic = "force-dynamic";
+const DESCRIPTION =
+  "Des pièces anciennes chinées puis restaurées à la main dans notre atelier de Cestas : luminaires et meubles uniques en Gironde.";
+
+export const metadata = creerMetadataPage({
+  titre: "Atelier Petita — Luminaires & mobilier revisités",
+  description: DESCRIPTION,
+  chemin: "/",
+});
+
+// Copie CDN renouvelée au plus tard chaque heure ; les actions d'administration
+// l'invalident immédiatement après une modification.
+export const revalidate = 3600;
 
 export default async function Home() {
   const [visuels, annonces] = await Promise.all([lireVisuels(), lireAnnonces()]);
@@ -36,6 +47,7 @@ export default async function Home() {
         <About />
         <Luminaires visuels={visuels} />
         <Meubles visuels={visuels} />
+        <Services />
         <Gallery ventes={ventes} />
         <Testimonials />
         <Reassurance />

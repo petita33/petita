@@ -89,7 +89,7 @@ function CarteVente({ annonce }: { annonce: Annonce }) {
           comprise, sans imbriquer la figcaption hors de la <figure>.
         */}
         <Link
-          href={hrefAnnonce(annonce.id)}
+          href={hrefAnnonce(annonce)}
           className="line-clamp-2 text-petita-brick no-underline after:absolute after:inset-0 after:content-[''] hover:text-petita-rose focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
         >
           {annonce.titre}

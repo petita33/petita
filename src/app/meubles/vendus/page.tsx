@@ -1,19 +1,28 @@
-import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AnnoncesGrille } from "@/components/AnnoncesGrille";
+import { JsonLd } from "@/components/JsonLd";
 import { trierParDateDecroissante } from "@/lib/annonces";
 import { lireAnnonces } from "@/lib/annonces-store";
+import {
+  filArianeJsonLd,
+  creerMetadataPage,
+  grapheSchema,
+  listeAnnoncesJsonLd,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Nos meubles vendus — Atelier Petita",
-  description:
-    "Galerie des meubles anciens restaurés qui ont trouvé leur maison. Une source d'inspiration pour découvrir notre savoir-faire.",
-};
+const DESCRIPTION =
+  "Galerie des meubles anciens restaurés qui ont trouvé leur maison, pour découvrir le savoir-faire de l'Atelier Petita.";
 
-// Les annonces sont lues à chaque requête pour qu'une publication soit
-// visible immédiatement.
-export const dynamic = "force-dynamic";
+export const metadata = creerMetadataPage({
+  titre: "Nos meubles vendus — Atelier Petita",
+  description: DESCRIPTION,
+  chemin: "/meubles/vendus",
+});
+
+// La publication admin invalide cette copie sans attendre l'échéance horaire.
+export const revalidate = 3600;
 
 export default async function MeublesVendus() {
   const annonces = trierParDateDecroissante(
@@ -24,6 +33,15 @@ export default async function MeublesVendus() {
 
   return (
     <div className="overflow-x-hidden">
+      <JsonLd
+        data={grapheSchema(
+          filArianeJsonLd([
+            { nom: "Accueil", chemin: "/" },
+            { nom: "Nos meubles vendus", chemin: "/meubles/vendus" },
+          ]),
+          listeAnnoncesJsonLd(annonces),
+        )}
+      />
       <Header />
 
       <main>
@@ -31,7 +49,7 @@ export default async function MeublesVendus() {
         <div className="bg-petita-cream/60 py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
             <nav aria-label="Fil d'Ariane" className="mb-6 flex items-center gap-2 font-display text-sm text-petita-brown/70">
-              <a href="/" className="no-underline hover:text-petita-brick">Accueil</a>
+              <Link href="/" className="no-underline hover:text-petita-brick">Accueil</Link>
               <span aria-hidden="true">›</span>
               <span className="text-petita-brick">Nos meubles vendus</span>
             </nav>
@@ -62,18 +80,18 @@ export default async function MeublesVendus() {
               Découvrez nos pièces actuellement disponibles à la vente, ou contactez-nous pour nous parler de votre projet.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <a
+              <Link
                 href="/meubles/en-vente"
                 className="inline-flex min-h-12 items-center rounded-md bg-petita-brick px-8 py-3.5 font-display text-lg text-petita-cream no-underline hover:bg-petita-rose focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
               >
                 Voir les meubles en vente
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/#contact"
                 className="inline-flex min-h-12 items-center rounded-md border border-petita-gold/60 px-8 py-3.5 font-display text-lg text-petita-brick no-underline hover:bg-petita-brick hover:text-petita-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-petita-gold"
               >
                 Nous contacter
-              </a>
+              </Link>
             </div>
           </div>
         </section>

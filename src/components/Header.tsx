@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { Logo } from "./Logo";
 import { InstagramIcon } from "./InstagramIcon";
 
@@ -52,7 +53,7 @@ export function Header() {
     <>
       <header className="sticky top-0 z-50 border-b border-petita-gold/35 bg-petita-blush/88 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-2.5 sm:px-6 lg:px-10">
-          <a
+          <Link
             href="/"
             className="flex min-h-12 items-center gap-3.5 no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-petita-gold"
           >
@@ -65,7 +66,7 @@ export function Header() {
                 LUMIÈRE &amp; DÉCO
               </span>
             </span>
-          </a>
+          </Link>
 
           {/* Bouton burger mobile */}
           <button
@@ -84,12 +85,12 @@ export function Header() {
             aria-label="Navigation principale"
             className="hidden items-center justify-end gap-1 lg:flex lg:gap-3"
           >
-            <a
+            <Link
               href="/#accueil"
               className={`${navLinkClass} border-petita-gold text-petita-brick`}
             >
               Accueil
-            </a>
+            </Link>
 
             {/* Luminaires et Meubles avec dropdown */}
             <div ref={menusRef} className="flex items-center gap-1 lg:gap-3">
@@ -118,33 +119,39 @@ export function Header() {
                       </svg>
                     </button>
 
-                    {ouvert && (
-                      <div className="absolute left-0 top-full z-50 mt-1.5 min-w-[240px] overflow-hidden rounded-xl border border-petita-gold/30 bg-petita-cream shadow-lg">
-                        {menu.items.map((item) => (
-                          <a
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setMenuDeroulant(null)}
-                            className="flex min-h-11 items-center border-b border-petita-gold/15 px-5 font-display text-[15px] tracking-wide text-petita-brown no-underline last:border-b-0 hover:bg-petita-blush hover:text-petita-brick"
-                          >
-                            {item.label}
-                          </a>
-                        ))}
-                      </div>
-                    )}
+                    <div
+                      aria-hidden={!ouvert}
+                      className={`absolute left-0 top-full z-50 mt-1.5 min-w-[240px] overflow-hidden rounded-xl border border-petita-gold/30 bg-petita-cream shadow-lg transition duration-150 ${
+                        ouvert
+                          ? "visible translate-y-0 opacity-100"
+                          : "pointer-events-none invisible -translate-y-1 opacity-0"
+                      }`}
+                    >
+                      {menu.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          tabIndex={ouvert ? undefined : -1}
+                          onClick={() => setMenuDeroulant(null)}
+                          className="flex min-h-11 items-center border-b border-petita-gold/15 px-5 font-display text-[15px] tracking-wide text-petita-brown no-underline last:border-b-0 hover:bg-petita-blush hover:text-petita-brick"
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 );
               })}
             </div>
 
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 className={navLinkClass}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
 
             <a
@@ -161,8 +168,15 @@ export function Header() {
       </header>
 
       {/* Menu mobile plein écran */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-petita-blush px-4 pb-10 pt-5 sm:px-8 lg:hidden">
+      <div
+        aria-hidden={!menuOpen}
+        inert={!menuOpen}
+        className={`fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-petita-blush px-4 pb-10 pt-5 transition duration-200 sm:px-8 lg:hidden ${
+          menuOpen
+            ? "visible translate-x-0 opacity-100"
+            : "pointer-events-none invisible translate-x-full opacity-0"
+        }`}
+      >
           <div className="flex justify-end">
             <button
               type="button"
@@ -175,13 +189,13 @@ export function Header() {
           </div>
 
           <nav aria-label="Navigation mobile" className="mt-5 flex flex-col">
-            <a
+            <Link
               href="/#accueil"
               onClick={() => setMenuOpen(false)}
               className="flex min-h-15 items-center border-b border-petita-gold/35 px-1.5 font-display text-2xl leading-tight text-petita-brick no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
             >
               Accueil
-            </a>
+            </Link>
 
             {/* Luminaires et Meubles en accordéons mobile */}
             {MENUS_DEROULANTS.map((menu) => {
@@ -208,34 +222,38 @@ export function Header() {
                     </svg>
                   </button>
 
-                  {ouvert && (
-                    <div className="mb-2 flex flex-col gap-1 pl-4">
-                      {menu.items.map((item) => (
-                        <a
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setMenuOpen(false)}
-                          className="flex min-h-12 items-center gap-3 px-1.5 font-display text-xl leading-tight text-petita-brown no-underline hover:text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
-                        >
-                          <span className="text-petita-gold text-base">—</span>
-                          {item.label}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  <div
+                    aria-hidden={!ouvert}
+                    className={`flex flex-col gap-1 overflow-hidden pl-4 transition-all duration-200 ${
+                      ouvert ? "mb-2 max-h-32 opacity-100" : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    {menu.items.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        tabIndex={ouvert ? undefined : -1}
+                        onClick={() => setMenuOpen(false)}
+                        className="flex min-h-12 items-center gap-3 px-1.5 font-display text-xl leading-tight text-petita-brown no-underline hover:text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
+                      >
+                        <span className="text-petita-gold text-base">—</span>
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               );
             })}
 
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
                 className="flex min-h-15 items-center border-b border-petita-gold/35 px-1.5 font-display text-2xl leading-tight text-petita-brick no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
 
             <a
@@ -248,8 +266,7 @@ export function Header() {
               Instagram
             </a>
           </nav>
-        </div>
-      )}
+      </div>
     </>
   );
 }
