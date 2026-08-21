@@ -22,10 +22,12 @@ export async function lireInstantaneVisuels(): Promise<InstantaneVisuels> {
   return { visuels: normaliserVisuels(contenu), version };
 }
 
+/** Invalidé par `updateTag(TAG_VISUELS)` seul, comme les annonces et pour les
+ * mêmes raisons de coût — voir `annonces-store.ts`. */
 const lireVisuelsMisEnCache = unstable_cache(
   async () => (await lireInstantaneVisuels()).visuels,
   ["visuels-publics"],
-  { tags: [TAG_VISUELS], revalidate: 3600 },
+  { tags: [TAG_VISUELS], revalidate: false },
 );
 
 export async function lireVisuels(): Promise<Visuels> {

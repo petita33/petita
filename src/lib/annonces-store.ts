@@ -47,10 +47,19 @@ export async function lireInstantane(): Promise<Instantane> {
   };
 }
 
+/**
+ * Aucune péremption dans le temps : `updateTag(TAG_ANNONCES)` est appelé par
+ * chaque Server Action qui écrit, et c'est la seule chose qui puisse changer ce
+ * catalogue. Une expiration à l'heure ne rafraîchissait donc rien — elle
+ * relançait un `lireJson`, donc un `list()`, donc une opération avancée
+ * facturable, vingt-quatre fois par jour pour retrouver le même contenu. À deux
+ * jeux de données, cela consommait à soi seul les 2 000 opérations avancées du
+ * forfait Hobby, sans qu'une seule annonce ait été publiée.
+ */
 const lireAnnoncesMisesEnCache = unstable_cache(
   async () => (await lireInstantane()).annonces,
   ["annonces-publiques"],
-  { tags: [TAG_ANNONCES], revalidate: 3600 },
+  { tags: [TAG_ANNONCES], revalidate: false },
 );
 
 export async function lireAnnonces(): Promise<Annonce[]> {

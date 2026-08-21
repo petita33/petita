@@ -14,10 +14,10 @@
  */
 
 import { DOSSIER_ANNONCES } from "./annonces";
-import { lireAnnonces } from "./annonces-store";
+import { lireInstantane } from "./annonces-store";
 import { blobConfigure, listerImages, supprimerImages } from "./blob";
 import { DOSSIER_VISUELS } from "./visuels";
-import { lireVisuels } from "./visuels-store";
+import { lireInstantaneVisuels } from "./visuels-store";
 
 /**
  * Une photo tout juste envoyée n'est référencée nulle part tant que le
@@ -45,16 +45,27 @@ export async function balayerImagesOrphelines(): Promise<BilanBalayage> {
   if (!blobConfigure()) return RIEN;
 
   try {
-    // `lireAnnonces` et `lireVisuels` lèvent si la lecture échoue vraiment (par
-    // opposition à un fichier encore inexistant, qui vaut « rien à référencer »).
-    // C'est ce qui rend ce balayage sûr : sur panne, on n'arrive jamais ici avec
-    // une liste vide qui ferait tout supprimer.
-    const [annonces, visuels, imagesAnnonces, imagesVisuels] = await Promise.all([
-      lireAnnonces(),
-      lireVisuels(),
-      listerImages(DOSSIER_ANNONCES),
-      listerImages(DOSSIER_VISUELS),
-    ]);
+    // Lecture directe du store, sans passer par les versions mises en cache.
+    // Celles-ci n'expirent plus dans le temps : leur fraîcheur ne tient qu'à
+    // l'`updateTag` des Server Actions. C'est très bien pour afficher le site —
+    // au pire une page reste une seconde en retard — mais ici on décide de
+    // *supprimer des fichiers*, et une entrée de cache restée en arrière ferait
+    // passer pour orphelines les photos d'une annonce bien vivante. Le prix est
+    // de deux `list()` par balayage, contre l'effacement de photos que personne
+    // ne peut restaurer. Cela corrige aussi le balayage lancé par `after()`
+    // juste après un enregistrement, qui lisait l'état d'avant l'écriture.
+    //
+    // Ces deux lectures lèvent si le store est en panne (par opposition à un
+    // fichier encore inexistant, qui vaut « rien à référencer »). C'est ce qui
+    // rend ce balayage sûr : sur panne, on n'arrive jamais ici avec une liste
+    // vide qui ferait tout supprimer.
+    const [{ annonces }, { visuels }, imagesAnnonces, imagesVisuels] =
+      await Promise.all([
+        lireInstantane(),
+        lireInstantaneVisuels(),
+        listerImages(DOSSIER_ANNONCES),
+        listerImages(DOSSIER_VISUELS),
+      ]);
 
     const referencees = new Set<string>();
     for (const annonce of annonces) {
