@@ -27,7 +27,16 @@ import {
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const annonces = await lireAnnonces();
+  // Pré-générer les fiches n'est qu'une optimisation : si le store reste
+  // injoignable pendant le build, elles le seront à la première visite plutôt
+  // que de bloquer le déploiement. L'échec n'est pas mis en cache.
+  let annonces: Annonce[];
+  try {
+    annonces = await lireAnnonces();
+  } catch (erreur) {
+    console.error("Fiches d'annonces non pré-générées", erreur);
+    return [];
+  }
 
   return annonces.map((annonce) => ({
     id: segmentAnnonce(annonce),

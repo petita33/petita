@@ -105,29 +105,49 @@ function telecharger(url: string) {
   });
 }
 
+/**
+ * Attentes successives avant de relire un fichier refusé par le CDN.
+ *
+ * Le pare-feu de Vercel protège aussi le CDN des stores publics : selon le
+ * débit et l'adresse d'origine, il répond à une partie des requêtes par un
+ * challenge anti-bot (HTTP 403, en-tête `x-vercel-mitigated: challenge`) —
+ * qu'aucun serveur ne peut résoudre, jeton Blob ou non. Les machines de build,
+ * dont l'adresse est partagée avec d'autres projets, y sont les plus exposées.
+ * Mesuré : une rafale de relances immédiates reste dans la fenêtre de
+ * mitigation, alors que quelques secondes de pause suffisent à en sortir. Une
+ * relance immédiate ne suffit donc pas : c'est elle qui faisait échouer le build.
+ */
+const ATTENTES_RELANCE_MS = [500, 1_000, 2_000, 4_000, 8_000];
+
+function relancable(statut: number) {
+  return statut === 0 || statut === 403 || statut === 429 || statut >= 500;
+}
+
 async function lireVersion(version: Version): Promise<unknown | undefined> {
   // `url` peut être protégée par Vercel même sur un store public ; `downloadUrl`
   // est l'adresse de lecture officielle renvoyée par `list()` et reste publique.
   // On passe par HTTPS natif : le `fetch` instrumenté de Next entre ici en
   // conflit avec le cache applicatif qui enveloppe déjà cette lecture.
-  let reponse: { statut: number; texte: string } | undefined;
-  for (let tentative = 0; tentative < 3; tentative += 1) {
-    reponse = await telecharger(version.downloadUrl);
-    // Le CDN de ce store alterne ponctuellement entre un nœud valide et un
-    // nœud qui répond 403. Une relance immédiate atteint le nœud sain.
-    if (reponse.statut !== 403) break;
+  const tenter = () =>
+    telecharger(version.downloadUrl).catch((erreur: unknown) => {
+      console.warn(`Lecture de ${version.pathname} interrompue`, erreur);
+      return { statut: 0, texte: "" };
+    });
+
+  let reponse = await tenter();
+  for (const attente of ATTENTES_RELANCE_MS) {
+    if (!relancable(reponse.statut)) break;
+    await new Promise((resolve) => setTimeout(resolve, attente));
+    reponse = await tenter();
   }
 
-  if (!reponse) {
-    throw new Error(`Lecture de ${version.pathname} impossible.`);
-  }
   // Version supprimée par le ménage d'une écriture concurrente : l'appelant se
   // rabattra sur la précédente.
   if (reponse.statut === 404) return undefined;
 
   if (reponse.statut !== 200) {
     throw new Error(
-      `Lecture de ${version.pathname} inattendue (HTTP ${reponse.statut}).`,
+      `Lecture de ${version.pathname} inattendue (HTTP ${reponse.statut || "sans réponse"}).`,
     );
   }
 
