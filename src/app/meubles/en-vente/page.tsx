@@ -59,8 +59,7 @@ export default async function MeublesEnVente() {
             <div className="my-5 h-0.5 w-16 bg-petita-gold" />
             <p className="m-0 max-w-[52ch] text-petita-brown">
               Buffets, commodes, guéridons… Du ponçage à la dernière couche de cire, nous redonnons
-              vie et modernité à des meubles chargés d&apos;histoire. Chaque pièce est restaurée entre
-              nos quatre mains, avec patience et passion.
+              vie et modernité à des meubles chargés d&apos;histoire.
             </p>
           </div>
         </div>

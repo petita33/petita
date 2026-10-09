@@ -1,14 +1,14 @@
 const SERVICES = [
   {
     title: "Restauration de luminaires",
-    text: "Nettoyage du verre, remise en état du laiton, câblage électrique neuf et douilles conformes.",
+    text: "Nettoyage du verre dans un bain à ultrasons, remise en état des laitons et chromes, changement du système électrique conforme CE.",
     icon: (
       <path d="M12 2v3M6 11h12l-3-6H9zM12 11v7M12 20a2 2 0 1 0 0 .01" />
     ),
   },
   {
-    title: "Relooking de meubles",
-    text: "Ponçage, peinture, pochoir et cires naturelles pour redonner du caractère à vos pièces.",
+    title: "Restauration de meubles",
+    text: "Aérogommage, ponçage, traitement contre les vrillettes, peinture, pochoirs, transferts…",
     icon: (
       <>
         <rect x="3" y="6" width="18" height="12" rx="1.5" />
@@ -17,8 +17,8 @@ const SERVICES = [
     ),
   },
   {
-    title: "Intervention à domicile",
-    text: "Nous nous déplaçons pour poser, mesurer et conseiller directement chez vous.",
+    title: "Livraison à domicile",
+    text: "Avec possibilité de montage.",
     icon: (
       <>
         <path d="M3 11l9-7 9 7" />
@@ -38,8 +38,8 @@ export function Services() {
         </h2>
         <div className="mt-5 h-0.5 w-15 bg-petita-gold" />
         <p className="mb-0 mt-5 max-w-[62ch] text-center text-petita-brown">
-          Installés à Cestas, nous restaurons luminaires et meubles anciens
-          pour les particuliers en Gironde et dans la métropole bordelaise.
+          Partagés entre Gironde et Lot-et-Garonne, nous restaurons luminaires
+          et meubles anciens pour particuliers et entreprises.
         </p>
       </div>
       <div data-reveal className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5 sm:gap-8">

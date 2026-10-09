@@ -18,12 +18,12 @@ export function ContactForm() {
     <section id="contact" className="mx-auto max-w-[760px] px-4 py-12 sm:px-6 sm:py-16 lg:py-24">
       <div data-reveal className="mb-10 flex flex-col items-center text-center">
         <h2 className="m-0 font-display text-[30px] font-semibold text-petita-brick sm:text-4xl lg:text-[44px]">
-          Parlons de votre pièce
+          Parlons de votre projet
         </h2>
         <div className="my-5 h-0.5 w-15 bg-petita-gold" />
         <p className="m-0 max-w-[52ch]">
-          Une lampe à remettre en état, un meuble à relooker, une envie encore floue ? Écrivez-nous,
-          nous répondons sous 48 heures.
+          Une lampe à remettre en état ou à moderniser&nbsp;? Un meuble qui manque de
+          pep&apos;s&nbsp;? Vous avez craqué sur un article en vente&nbsp;? Écrivez-nous.
         </p>
       </div>
       <form

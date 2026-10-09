@@ -41,6 +41,9 @@ export function Footer() {
           <Link href="/en-cours" className={linkClasses}>
             En cours de rénovation
           </Link>
+          <Link href="/chez-vous" className={linkClasses}>
+            Chez vous
+          </Link>
           <Link href="/apropos" className={linkClasses}>
             Notre histoire
           </Link>

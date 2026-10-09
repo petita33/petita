@@ -118,7 +118,7 @@ export function FormulaireAnnonce({
         </label>
         <p className={classeAide}>
           Laissez vide pour ne rien afficher. Jamais affiché sur les pages
-          « vendus » ni « en cours de rénovation ».
+          « vendus », « en cours de rénovation » ni « chez vous ».
         </p>
         <div className="relative">
           <input

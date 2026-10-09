@@ -44,8 +44,10 @@ export default async function TableauDeBord({
       </h1>
       <div className="my-4 h-0.5 w-16 bg-petita-gold" />
       <p className="m-0 max-w-[62ch] text-sm text-petita-brown sm:text-[15px]">
-        Les annonces mises en vente et les pièces encore à l&apos;atelier se
-        gèrent séparément. Les photos de présentation de la page d&apos;accueil,
+        Les annonces mises en vente, les pièces encore à l&apos;atelier et les
+        photos de vos pièces chez les clients (page « Chez vous ») se gèrent
+        séparément. Pour « Chez vous », demandez toujours l&apos;accord du client
+        avant de publier une photo de chez lui. Les photos de présentation de la page d&apos;accueil,
         elles, se changent dans l&apos;onglet « Photos de la page d&apos;accueil ».
       </p>
 

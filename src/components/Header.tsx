@@ -24,12 +24,13 @@ const MENUS_DEROULANTS = [
 
 const NAV_LINKS = [
   { href: "/en-cours", label: "En cours" },
+  { href: "/chez-vous", label: "Chez vous" },
   { href: "/apropos", label: "À propos" },
   { href: "/contact", label: "Contact" },
 ];
 
 const navLinkClass =
-  "flex min-h-12 items-center border-b-2 border-transparent px-2.5 py-3.5 font-display text-[17px] tracking-wide text-petita-brown no-underline [font-variant:small-caps] hover:border-petita-gold hover:text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold";
+  "flex min-h-12 items-center whitespace-nowrap border-b-2 border-transparent px-2.5 py-3.5 lg:px-1.5 xl:px-2.5 font-display text-[17px] tracking-wide text-petita-brown no-underline [font-variant:small-caps] hover:border-petita-gold hover:text-petita-brick focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petita-gold";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,7 +56,7 @@ export function Header() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-2.5 sm:px-6 lg:px-10">
           <Link
             href="/"
-            className="flex min-h-12 items-center gap-3.5 no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-petita-gold"
+            className="flex min-h-12 shrink-0 items-center gap-3.5 no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-petita-gold"
           >
             <Logo className="h-14 w-14 shrink-0" />
             <span className="flex flex-col leading-tight">
@@ -83,7 +84,7 @@ export function Header() {
           {/* Navigation desktop */}
           <nav
             aria-label="Navigation principale"
-            className="hidden items-center justify-end gap-1 lg:flex lg:gap-3"
+            className="hidden items-center justify-end gap-1 lg:flex xl:gap-3"
           >
             <Link
               href="/#accueil"
@@ -93,7 +94,7 @@ export function Header() {
             </Link>
 
             {/* Luminaires et Meubles avec dropdown */}
-            <div ref={menusRef} className="flex items-center gap-1 lg:gap-3">
+            <div ref={menusRef} className="flex items-center gap-1 xl:gap-3">
               {MENUS_DEROULANTS.map((menu) => {
                 const ouvert = menuDeroulant === menu.label;
 

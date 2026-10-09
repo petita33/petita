@@ -37,6 +37,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: url("/chez-vous"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
       url: url("/luminaires/vendus"),
       changeFrequency: "monthly",
       priority: 0.7,
@@ -73,13 +78,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const pagesAnnonces: MetadataRoute.Sitemap = annonces.map((annonce) => ({
-    url: url(hrefAnnonce(annonce)),
-    lastModified: annonce.modifieLe,
-    changeFrequency: annonce.categorie.endsWith("-vendus") ? "yearly" : "weekly",
-    priority: annonce.categorie.endsWith("-vendus") ? 0.5 : 0.8,
-    images: annonce.images,
-  }));
+  const pagesAnnonces: MetadataRoute.Sitemap = annonces.map((annonce) => {
+    // Une pièce vendue, qu'elle soit en galerie ou photographiée chez son
+    // propriétaire, ne bougera plus.
+    const vendue =
+      annonce.categorie.endsWith("-vendus") || annonce.categorie === "chez-vous";
+
+    return {
+      url: url(hrefAnnonce(annonce)),
+      lastModified: annonce.modifieLe,
+      changeFrequency: vendue ? "yearly" : "weekly",
+      priority: vendue ? 0.5 : 0.8,
+      images: annonce.images,
+    };
+  });
 
   return [...pages, ...pagesAnnonces];
 }

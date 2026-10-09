@@ -77,6 +77,7 @@ export default async function PageAnnonce({
   const categorie = CATEGORIES[annonce.categorie];
   const prix = categorie.enVente ? formaterPrix(annonce.prix) : null;
   const enRenovation = categorie.groupe === "en-cours";
+  const chezUnClient = categorie.groupe === "chez-vous";
 
   return (
     <div className="overflow-x-hidden">
@@ -153,7 +154,9 @@ export default async function PageAnnonce({
             <p className="mt-8 text-sm text-petita-brown/70">
               {enRenovation
                 ? "Restauration en cours dans notre atelier. Écrivez-nous pour suivre son avancée ou la réserver."
-                : "Pièce unique chinée puis restaurée à la main dans notre atelier."}
+                : chezUnClient
+                  ? "Restaurée dans notre atelier, photographiée chez celles et ceux qui l'ont adoptée."
+                  : "Pièce unique chinée puis restaurée à la main dans notre atelier."}
             </p>
           </div>
         </div>

@@ -7,8 +7,8 @@ import type { FormatImage } from "./formats";
 
 /**
  * Les catégories sont réparties en groupes, qui n'ont rien à voir entre eux
- * dans l'espace d'administration : d'un côté ce qui est proposé à la vente,
- * de l'autre les pièces encore sur l'établi.
+ * dans l'espace d'administration : ce qui est proposé à la vente, les pièces
+ * encore sur l'établi, et celles déjà installées chez leurs propriétaires.
  */
 export const GROUPES = {
   annonces: {
@@ -21,6 +21,11 @@ export const GROUPES = {
     titre: "En cours de rénovation",
     creer: "Nouvelle rénovation",
     nom: "rénovation",
+  },
+  "chez-vous": {
+    titre: "Chez vous",
+    creer: "Nouvelle pièce chez un client",
+    nom: "pièce",
   },
 } as const;
 
@@ -70,6 +75,15 @@ export const CATEGORIES = {
     // Une pièce encore à l'atelier n'a ni prix affiché ni bouton d'achat.
     enVente: false,
     pastille: "En rénovation",
+  },
+  "chez-vous": {
+    label: "Chez vous",
+    href: "/chez-vous",
+    groupe: "chez-vous",
+    // Pièces vendues, photographiées chez leurs nouveaux propriétaires : rien à
+    // acheter, et la page entière dit déjà où elles se trouvent.
+    enVente: false,
+    pastille: null,
   },
 } as const satisfies Record<
   string,
