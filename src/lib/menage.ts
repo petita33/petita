@@ -14,10 +14,21 @@
  */
 
 import { DOSSIER_ANNONCES } from "./annonces";
-import { lireInstantane } from "./annonces-store";
-import { blobConfigure, listerImages, supprimerImages } from "./blob";
+import {
+  DOSSIER_DONNEES_ANNONCES,
+  lireInstantane,
+} from "./annonces-store";
+import {
+  blobConfigure,
+  listerImages,
+  purgerVersionsAnciennes,
+  supprimerImages,
+} from "./blob";
 import { DOSSIER_VISUELS } from "./visuels";
-import { lireInstantaneVisuels } from "./visuels-store";
+import {
+  DOSSIER_DONNEES_VISUELS,
+  lireInstantaneVisuels,
+} from "./visuels-store";
 
 /**
  * Une photo tout juste envoyée n'est référencée nulle part tant que le
@@ -93,6 +104,12 @@ export async function balayerImagesOrphelines(): Promise<BilanBalayage> {
       return { supprimees: 0, ajournees, echecs: 0 };
     }
 
+    // Tracé avant l'appel : une suppression automatique doit laisser de quoi
+    // savoir exactement ce qui est parti, et quand.
+    console.info(
+      `Balayage des orphelines : suppression de ${orphelines.length} objet(s) — ${orphelines.join(", ")}`,
+    );
+
     const { supprimees, echecs } = await supprimerImages(
       orphelines,
       "balayage des orphelines",
@@ -110,6 +127,25 @@ export async function balayerImagesOrphelines(): Promise<BilanBalayage> {
     };
   } catch (erreur) {
     console.error("Balayage des images orphelines impossible", erreur);
-    return RIEN;
+    // Le bilan du cron doit rendre l'échec visible : zéro suppression ne doit
+    // jamais être confondu avec un balayage réussi qui n'avait rien à faire.
+    return { supprimees: 0, ajournees: 0, echecs: 1 };
   }
+}
+
+/**
+ * Ménage quotidien complet et bilan sérialisable pour les journaux Vercel.
+ * Les deux opérations sont indépendantes : l'échec de l'une ne prive pas
+ * l'autre de sa tentative de purge.
+ */
+export async function effectuerMenage() {
+  const [images, versions] = await Promise.all([
+    balayerImagesOrphelines(),
+    purgerVersionsAnciennes([
+      DOSSIER_DONNEES_ANNONCES,
+      DOSSIER_DONNEES_VISUELS,
+    ]),
+  ]);
+
+  return { images, versions };
 }

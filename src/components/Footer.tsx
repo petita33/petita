@@ -51,6 +51,9 @@ export function Footer() {
           <Link href="/mentions-legales" className={linkClasses}>
             Mentions légales
           </Link>
+          <Link href="/politique-confidentialite" className={linkClasses}>
+            Politique de confidentialité
+          </Link>
           <Link href="/cgu-cgv" className={linkClasses}>
             CGU / CGV
           </Link>

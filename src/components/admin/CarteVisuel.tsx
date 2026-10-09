@@ -175,6 +175,11 @@ export function CarteVisuel({
               </button>
             ) : null}
           </div>
+          <p className="mt-3 text-sm text-petita-brown/80">
+            Le nom et les métadonnées de la photo sont retirés automatiquement.
+            Ne publiez ni personne, plaque, adresse ou document privé sans droit
+            et information adaptés.
+          </p>
 
           <div className="mt-5">
             <ChampFormat

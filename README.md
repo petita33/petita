@@ -23,6 +23,15 @@ photos) et de choisir la page sur laquelle elles apparaissent :
 Sans store Blob configuré, les pages publiques s'affichent vides et
 l'enregistrement d'une annonce renvoie un message d'erreur explicite.
 
+## Conformité RGPD
+
+La politique publique, le registre des traitements, les durées, les
+prestataires et les procédures internes sont regroupés dans
+[docs/rgpd](./docs/rgpd/README.md). La checklist « contrôles bloquants avant
+mise en production » doit être complétée dans l'espace privé avec les contrats,
+captures de réglages et exercices réels ; aucune donnée de visiteur ni aucun
+secret ne doit être ajouté au dépôt.
+
 ### Fonctionnement
 
 - Les photos sont envoyées **depuis le navigateur** directement vers Vercel

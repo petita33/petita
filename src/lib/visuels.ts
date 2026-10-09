@@ -209,7 +209,9 @@ export function normaliserVisuels(contenu: unknown): Visuels {
       alt?: unknown;
       format?: unknown;
     };
-    if (typeof url !== "string" || url === "") continue;
+    // Une URL qui ne serait pas une adresse HTTPS n'a rien à faire dans un
+    // `src` : le document est relu à chaque lecture, jamais simplement transtypé.
+    if (typeof url !== "string" || !url.startsWith("https://")) continue;
     visuels[cle] = {
       url,
       alt: typeof alt === "string" ? alt : "",

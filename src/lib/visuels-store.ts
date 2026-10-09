@@ -8,7 +8,7 @@ import { ecrireJson, lireJson } from "./blob";
 import { normaliserVisuels, type Visuels } from "./visuels";
 
 /** Dossier des versions successives du JSON, la plus récente faisant foi. */
-const DONNEES = "donnees/visuels";
+export const DOSSIER_DONNEES_VISUELS = "donnees/visuels";
 export const TAG_VISUELS = "visuels";
 
 export type InstantaneVisuels = {
@@ -18,7 +18,7 @@ export type InstantaneVisuels = {
 };
 
 export async function lireInstantaneVisuels(): Promise<InstantaneVisuels> {
-  const { contenu, version } = await lireJson(DONNEES);
+  const { contenu, version } = await lireJson(DOSSIER_DONNEES_VISUELS);
   return { visuels: normaliserVisuels(contenu), version };
 }
 
@@ -35,5 +35,5 @@ export async function lireVisuels(): Promise<Visuels> {
 }
 
 export async function ecrireVisuels(visuels: Visuels, version: string | null) {
-  await ecrireJson(DONNEES, visuels, version);
+  await ecrireJson(DOSSIER_DONNEES_VISUELS, visuels, version);
 }

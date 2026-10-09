@@ -2,9 +2,11 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { after } from "next/server";
-import { estUrlBlob, supprimerImages } from "@/lib/blob";
+import { supprimerImages } from "@/lib/blob";
 import { balayerImagesOrphelines } from "@/lib/menage";
 import { estFormat } from "@/lib/formats";
+import { extensionAcceptee, imagesInvalides } from "@/lib/images";
+import { estUrlBlob } from "@/lib/store";
 import { DOSSIER_VISUELS, estEmplacement, type Visuels } from "@/lib/visuels";
 import {
   ecrireVisuels,
@@ -41,11 +43,20 @@ export async function enregistrerVisuel(
   const format = estFormat(formatBrut) ? formatBrut : undefined;
 
   if (!estEmplacement(emplacement)) return { erreur: "Emplacement inconnu." };
-  if (image !== "" && !estUrlBlob(image, DOSSIER_VISUELS)) {
+  if (image !== "" && !(estUrlBlob(image, DOSSIER_VISUELS) && extensionAcceptee(image))) {
     return { erreur: "Cette photo n'a pas été envoyée correctement. Réessayez." };
   }
   if (alt.length > LIMITE_ALT) {
     return { erreur: `La description ne doit pas dépasser ${LIMITE_ALT} caractères.` };
+  }
+
+  // Le type annoncé à l'envoi vient du navigateur : on vérifie les octets
+  // réellement déposés avant que la photo n'atterrisse sur la page d'accueil.
+  if (image !== "" && (await imagesInvalides([image])).length > 0) {
+    console.error(`Photo au contenu non reconnu : ${image}`);
+    return {
+      erreur: "Cette photo n'est pas arrivée entière. Renvoyez-la, puis réessayez.",
+    };
   }
 
   const { visuels, version } = await lireInstantaneVisuels();

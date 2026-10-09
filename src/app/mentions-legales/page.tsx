@@ -96,30 +96,22 @@ export default function MentionsLegales() {
 
             <section className={sectionClasses} aria-labelledby="donnees-personnelles">
               <h2 id="donnees-personnelles" className={headingClasses}>
-                Protection des données personnelles (RGPD)
+                Données personnelles
               </h2>
               <p className="m-0">
-                Les données personnelles collectées via ce site sont traitées conformément au
-                Règlement Général sur la Protection des Données (RGPD). Elles sont utilisées
-                uniquement pour répondre à vos demandes ou vous informer sur nos services.
+                Atelier Petita traite les données nécessaires au fonctionnement et à la
+                sécurité du site ainsi que celles que vous choisissez de transmettre pour
+                obtenir une réponse. Les mesures d’audience et de performance produisent
+                uniquement des statistiques anonymes, sans profilage ni suivi individuel.
               </p>
               <p className="m-0">
-                Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation,
-                d’opposition et de portabilité de vos données. Pour exercer ces droits,
-                contactez-nous à l’adresse suivante :{" "}
-                <a href="mailto:petita-lumieres@protonmail.com" className="break-words">
-                  petita-lumieres@protonmail.com
-                </a>
+                Les finalités, bases légales, destinataires, transferts, durées,
+                droits et modalités de réclamation auprès de la CNIL sont détaillés
+                dans la{" "}
+                <Link href="/politique-confidentialite">
+                  politique de confidentialité
+                </Link>
                 .
-              </p>
-            </section>
-
-            <section className={sectionClasses} aria-labelledby="conservation">
-              <h2 id="conservation" className={headingClasses}>
-                Durée de conservation
-              </h2>
-              <p className="m-0">
-                Les données sont conservées pendant 3 ans à compter de leur collecte.
               </p>
             </section>
 
@@ -150,6 +142,7 @@ export default function MentionsLegales() {
                 Ces mentions légales peuvent être modifiées à tout moment. Nous vous invitons à
                 les consulter régulièrement.
               </p>
+              <p className="m-0">Dernière mise à jour : 16 août 2026.</p>
             </section>
           </div>
         </div>

@@ -44,6 +44,7 @@ const PAGES_CONNUES: Record<string, string> = {
   "/apropos": "À propos",
   "/contact": "Contact",
   "/mentions-legales": "Mentions légales",
+  "/politique-confidentialite": "Politique de confidentialité",
   "/cgu-cgv": "Conditions générales",
   ...Object.fromEntries(
     CATEGORIES_ORDRE.map((categorie) => [

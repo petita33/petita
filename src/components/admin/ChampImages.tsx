@@ -115,6 +115,11 @@ export function ChampImages({
         La première photo sert de vignette sur le site ; réordonnez-les avec les
         flèches. {MAX_IMAGES} photos maximum.
       </p>
+      <p className={classeAide}>
+        Les métadonnées et le nom du fichier sont retirés automatiquement.
+        Vérifiez néanmoins que l’image ne montre ni personne, plaque, adresse ou
+        document privé, et que vous avez le droit de la publier.
+      </p>
 
       <input type="hidden" name="images" value={JSON.stringify(images)} />
       <input type="hidden" name="format" value={format} />

@@ -50,8 +50,9 @@ function echapper(texte: string) {
 }
 
 function corpsHtml({ nom, email, message }: MessageContact) {
+  const nomAffiche = nom || "Non renseigné";
   return `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.6;color:#3a2a24">
-  <p><strong>Nom</strong> : ${echapper(nom)}<br>
+  <p><strong>Nom</strong> : ${echapper(nomAffiche)}<br>
   <strong>E-mail</strong> : <a href="mailto:${echapper(email)}">${echapper(email)}</a></p>
   <hr style="border:none;border-top:1px solid #d8c3a5">
   <p style="white-space:pre-wrap">${echapper(message)}</p>
@@ -60,14 +61,17 @@ function corpsHtml({ nom, email, message }: MessageContact) {
 
 export async function envoyerMessageContact(saisie: MessageContact) {
   const { cle, destinataire, expediteur } = lireConfiguration();
+  const nomAffiche = saisie.nom || "Non renseigné";
 
   const { error } = await new Resend(cle).emails.send({
     from: expediteur,
     to: destinataire,
     // Répondre depuis sa boîte écrit directement au visiteur.
     replyTo: saisie.email,
-    subject: `Site Petita — message de ${saisie.nom}`,
-    text: `Nom : ${saisie.nom}\nE-mail : ${saisie.email}\n\n${saisie.message}\n`,
+    subject: saisie.nom
+      ? `Site Petita — message de ${saisie.nom}`
+      : "Site Petita — nouveau message",
+    text: `Nom : ${nomAffiche}\nE-mail : ${saisie.email}\n\n${saisie.message}\n`,
     html: corpsHtml(saisie),
   });
 

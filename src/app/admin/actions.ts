@@ -6,6 +6,7 @@ import { after } from "next/server";
 import {
   CATEGORIES,
   categorieVendue,
+  DOSSIER_ANNONCES,
   estCategorie,
   hrefAnnonce,
   type Annonce,
@@ -17,6 +18,8 @@ import {
 } from "@/lib/annonces-store";
 import { normaliserFormat } from "@/lib/formats";
 import { supprimerImages } from "@/lib/blob";
+import { extensionAcceptee, imagesInvalides } from "@/lib/images";
+import { estUrlBlob } from "@/lib/store";
 import { balayerImagesOrphelines } from "@/lib/menage";
 import {
   fermerSession,
@@ -78,8 +81,10 @@ function nettoyerImages(brut: FormDataEntryValue | null): string[] {
 
   return valeurs
     .filter((url): url is string => typeof url === "string")
-    // Seules les URLs Vercel Blob sont acceptées : le champ vient du client.
-    .filter((url) => /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//.test(url))
+    // Le champ vient du client : seules sont retenues les photos de notre store,
+    // dans le dossier des annonces, avec une extension d'image. Une URL d'un
+    // autre store — ou du dossier des données — n'entre pas dans le catalogue.
+    .filter((url) => estUrlBlob(url, DOSSIER_ANNONCES) && extensionAcceptee(url))
     .slice(0, LIMITE_IMAGES);
 }
 
@@ -148,6 +153,17 @@ export async function enregistrerAnnonce(
     };
   }
   if (images.length === 0) return { erreur: "Ajoutez au moins une photo." };
+
+  // Le type annoncé à l'envoi est déclaré par le navigateur : il ne prouve rien.
+  // On regarde ce qui a réellement été déposé avant de le publier.
+  const refusees = await imagesInvalides(images);
+  if (refusees.length > 0) {
+    console.error(`Photos au contenu non reconnu : ${refusees.join(", ")}`);
+    return {
+      erreur:
+        "Une ou plusieurs photos ne sont pas arrivées entières. Retirez-les, puis renvoyez-les.",
+    };
+  }
 
   const maintenant = new Date().toISOString();
   const { annonces, version } = await lireInstantane();

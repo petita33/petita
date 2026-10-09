@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Lora } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Suspense } from "react";
+import { GestionConfidentialite } from "@/components/Confidentialite";
 import { JsonLd } from "@/components/JsonLd";
 import { entrepriseJsonLd, grapheSchema, URL_SITE } from "@/lib/seo";
 import "./globals.css";
@@ -37,8 +37,9 @@ export default function RootLayout({
       <body className="min-h-full font-body text-[1.125rem] leading-[1.7] text-petita-brown antialiased">
         <JsonLd data={grapheSchema(entrepriseJsonLd())} />
         {children}
-        <Analytics />
-        <SpeedInsights />
+        <Suspense fallback={null}>
+          <GestionConfidentialite />
+        </Suspense>
       </body>
     </html>
   );

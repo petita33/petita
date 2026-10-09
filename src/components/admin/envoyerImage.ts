@@ -1,9 +1,11 @@
 "use client";
 
 import { upload } from "@vercel/blob/client";
-import { compresserImage } from "./compresserImage";
+import { cheminUpload, type DossierImages } from "@/lib/images";
+import { preparerImage } from "./preparerImage";
 
-const FORMATS_ACCEPTES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+/** Tout ce qui sort de `preparerImage` est du WebP réencodé par le navigateur. */
+const TYPE_ENVOYE = "image/webp";
 
 /**
  * Le SDK client remplace le corps de nos réponses d'erreur par « Failed to
@@ -16,6 +18,9 @@ async function causeReelle(message: string) {
     if (reponse.status === 401) {
       return "session expirée, reconnectez-vous puis réessayez";
     }
+    if (reponse.status === 429) {
+      return "trop de photos envoyées coup sur coup, patientez quelques minutes";
+    }
     const { raison } = (await reponse.json()) as { raison: string | null };
     if (raison) return raison;
   } catch {
@@ -25,30 +30,29 @@ async function causeReelle(message: string) {
 }
 
 /**
- * Compresse une photo puis l'envoie directement à Vercel Blob, dans `dossier`.
+ * Prépare une photo puis l'envoie directement à Vercel Blob, dans `dossier`.
  * Renvoie son URL publique.
+ *
+ * Le nom du fichier d'origine est abandonné au passage : le chemin est tiré au
+ * sort selon la convention que la route d'émission des jetons exige. Un nom de
+ * cliché ne devient jamais une URL publique, et le serveur n'a jamais à faire
+ * confiance à un chemin composé ici.
  *
  * En cas d'échec, lève une erreur dont le message est déjà lisible par la
  * patronne : l'appelant n'a plus qu'à l'afficher.
  */
 export async function envoyerImage(
   fichier: File,
-  dossier: string,
+  dossier: DossierImages,
   onProgression: (pourcentage: number) => void,
 ): Promise<string> {
-  let prepare: File;
   try {
-    prepare = await compresserImage(fichier);
-    if (!FORMATS_ACCEPTES.includes(prepare.type)) {
-      throw new Error(
-        `format non pris en charge (${prepare.type || "inconnu"}), utilisez JPG, PNG, WebP ou AVIF`,
-      );
-    }
+    const prepare = await preparerImage(fichier);
 
-    const resultat = await upload(`${dossier}/${prepare.name}`, prepare, {
+    const resultat = await upload(cheminUpload(dossier, TYPE_ENVOYE), prepare, {
       access: "public",
       handleUploadUrl: "/api/admin/upload",
-      contentType: prepare.type,
+      contentType: TYPE_ENVOYE,
       onUploadProgress: ({ percentage }) => onProgression(percentage),
     });
 

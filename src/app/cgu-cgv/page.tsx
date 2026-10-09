@@ -140,27 +140,29 @@ export default function CguCgv() {
                   6. Données personnelles
                 </h3>
                 <p className="m-0">
-                  Les données personnelles collectées via le Site (formulaire de contact,
-                  newsletter, etc.) sont traitées conformément au RGPD.
-                </p>
-                <p className="m-0">
-                  L’utilisateur dispose d’un droit d’accès, de rectification, d’effacement et
-                  d’opposition à ses données. Pour exercer ces droits, contactez-nous à{" "}
-                  <a href="mailto:petita-lumieres@protonmail.com" className="break-words">
-                    petita-lumieres@protonmail.com
-                  </a>
+                  Le formulaire de contact sert uniquement à traiter la demande et
+                  à y répondre ; aucune newsletter ni réutilisation publicitaire
+                  n’est mise en œuvre. Pour connaître les traitements, durées,
+                  destinataires et modalités d’exercice des droits, consultez la{" "}
+                  <Link href="/politique-confidentialite">
+                    politique de confidentialité
+                  </Link>
                   .
                 </p>
               </section>
 
               <section className={sectionClasses} aria-labelledby="cgu-cookies">
                 <h3 id="cgu-cookies" className={headingClasses}>
-                  7. Cookies
+                  7. Cookies et mesure d’audience
                 </h3>
                 <p className="m-0">
-                  Le Site utilise des cookies pour améliorer l’expérience utilisateur et analyser
-                  le trafic. L’utilisateur peut désactiver les cookies dans les paramètres de son
-                  navigateur.
+                  Le seul cookie du Site est la session strictement nécessaire de
+                  l’espace d’administration. Sur les pages publiques, Vercel Web
+                  Analytics et Speed Insights produisent des statistiques anonymes,
+                  sans publicité, profilage ni suivi individuel ou entre sites. Dans
+                  cette configuration limitée à l’audience et à la performance, ils
+                  sont utilisés sans consentement préalable conformément à
+                  l’exemption décrite dans la politique de confidentialité.
                 </p>
               </section>
 

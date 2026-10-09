@@ -54,6 +54,17 @@ export function blobConfigure() {
 
 const EXTENSION = ".json";
 
+/**
+ * Le nom d'une version, tel que `ecrireJson` le compose : horodatage ISO, tiret,
+ * huit caractères tirés au sort, `.json`.
+ *
+ * Tout objet qui ne suit pas cette convention est ignoré à la lecture comme au
+ * ménage. C'est ce qui empêche un objet déposé par erreur sous un dossier de
+ * données — ou par un client qui aurait obtenu un jeton pour ce préfixe — d'être
+ * pris pour la version courante et de rendre le catalogue illisible.
+ */
+const NOM_VERSION = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z-[0-9a-f]{8}\.json$/;
+
 type Version = {
   pathname: string;
   uploadedAt: Date;
@@ -63,11 +74,16 @@ type Version = {
 /** Les versions d'un jeu de données, la plus récente en tête. */
 async function listerVersions(dossier: string): Promise<Version[]> {
   const versions: Version[] = [];
+  const intrus: string[] = [];
   let curseur: string | undefined;
 
   do {
     const page = await list({ prefix: `${dossier}/`, cursor: curseur });
     for (const blob of page.blobs) {
+      if (!NOM_VERSION.test(blob.pathname.slice(dossier.length + 1))) {
+        intrus.push(blob.pathname);
+        continue;
+      }
       versions.push({
         pathname: blob.pathname,
         uploadedAt: blob.uploadedAt,
@@ -76,6 +92,14 @@ async function listerVersions(dossier: string): Promise<Version[]> {
     }
     curseur = page.hasMore ? page.cursor : undefined;
   } while (curseur);
+
+  if (intrus.length > 0) {
+    // Laissé en place plutôt que supprimé : le site continue de fonctionner, et
+    // ce qui a atterri là mérite d'être regardé avant d'être jeté.
+    console.error(
+      `Objet(s) inattendu(s) sous ${dossier}/, ignoré(s) : ${intrus.join(", ")}`,
+    );
+  }
 
   // Le nom porte l'horodatage de l'écriture : il départage deux versions que le
   // store daterait de la même seconde.
@@ -104,6 +128,9 @@ function telecharger(url: string) {
     requete.on("error", reject);
   });
 }
+
+/** Le fichier a bien été lu, mais son contenu n'est pas exploitable. */
+class VersionIllisible extends Error {}
 
 /**
  * Attentes successives avant de relire un fichier refusé par le CDN.
@@ -154,7 +181,9 @@ async function lireVersion(version: Version): Promise<unknown | undefined> {
   try {
     return JSON.parse(reponse.texte);
   } catch {
-    throw new Error(`Le fichier ${version.pathname} n'est pas un JSON valide.`);
+    throw new VersionIllisible(
+      `Le fichier ${version.pathname} n'est pas un JSON valide.`,
+    );
   }
 }
 
@@ -177,13 +206,30 @@ export async function lireJson(dossier: string): Promise<InstantaneJson> {
   const versions = await listerVersions(dossier);
   if (versions.length === 0) return lireJsonHerite(dossier);
 
+  let derniereErreur: unknown;
   for (const version of versions) {
-    const contenu = await lireVersion(version);
-    if (contenu !== undefined) return { contenu, version: version.pathname };
+    try {
+      const contenu = await lireVersion(version);
+      if (contenu !== undefined) return { contenu, version: version.pathname };
+    } catch (erreur) {
+      // Un store injoignable n'est pas une version corrompue : se rabattre sur
+      // la précédente servirait un catalogue périmé, que le cache public
+      // garderait jusqu'au prochain enregistrement.
+      if (!(erreur instanceof VersionIllisible)) throw erreur;
+      // Version illisible — JSON tronqué, contenu inattendu : on se rabat sur la
+      // précédente plutôt que de rendre tout le site indisponible. L'écriture
+      // suivante repartira alors en conflit, ce qui est le bon moment pour venir
+      // regarder ce qui traîne dans le dossier.
+      console.error(`Version ${version.pathname} ignorée`, erreur);
+      derniereErreur = erreur;
+    }
   }
 
-  // `list` a bien renvoyé des versions : les avoir toutes vues disparaître est
-  // une panne, pas un jeu de données vide.
+  // `list` a bien renvoyé des versions : les avoir toutes vues disparaître ou
+  // devenir illisibles est une panne, pas un jeu de données vide. Lever ici est
+  // ce qui empêche le balayage des orphelines de prendre l'incident pour un
+  // catalogue vide et de supprimer des photos bien vivantes.
+  if (derniereErreur) throw derniereErreur;
   throw new Error(`Aucune version lisible de ${dossier}.`);
 }
 
@@ -242,18 +288,59 @@ export async function ecrireJson(
     cacheControlMaxAge: 24 * 60 * 60,
   });
 
+  if (await ecritureConcurrente(dossier, versions, chemin)) {
+    // Notre version part avec : deux enregistrements simultanés repartent tous
+    // deux avec un conflit à l'écran plutôt qu'un seul, silencieusement écrasé.
+    await del(chemin).catch((erreur) =>
+      console.error(`Version ${chemin} non retirée après conflit`, erreur),
+    );
+    throw new ConflitDeVersion();
+  }
+
   // Le ménage ne doit jamais faire échouer un enregistrement déjà abouti.
   await rangerVersions(dossier, versions);
+}
+
+/**
+ * Le contrôle de version est une lecture suivie d'une écriture : entre les
+ * deux, un second onglet peut avoir déposé sa propre version, et le store n'a
+ * pas de primitive qui refuserait la nôtre pour autant. On relit donc après
+ * coup — si une version que nous n'avions pas vue est apparue, l'écriture est
+ * annulée au lieu de recouvrir celle de l'autre.
+ *
+ * Un échec de cette relecture ne remet pas en cause l'enregistrement, qui a
+ * abouti : on le trace et on le laisse passer.
+ */
+async function ecritureConcurrente(
+  dossier: string,
+  connues: Version[],
+  nouvelle: string,
+) {
+  let apres: Version[];
+  try {
+    apres = await listerVersions(dossier);
+  } catch (erreur) {
+    console.error(`Relecture des versions de ${dossier} impossible`, erreur);
+    return false;
+  }
+
+  const dejaVues = new Set([nouvelle, ...connues.map((v) => v.pathname)]);
+  const survenues = apres.filter((version) => !dejaVues.has(version.pathname));
+  if (survenues.length === 0) return false;
+
+  console.warn(
+    `Écriture concurrente sur ${dossier} : ${survenues.map((v) => v.pathname).join(", ")}`,
+  );
+  return true;
 }
 
 /**
  * Supprime les versions périmées d'un jeu de données. La précédente est
  * conservée : une lecture commencée avant l'écriture peut encore la demander.
  *
- * Le `<dossier>.json` de l'ancien format, lui, n'est jamais supprimé : il ne
- * coûte rien, plus rien ne le lit dès qu'une version existe, et il reste le
- * filet si le déploiement devait être annulé — le code précédent le retrouve
- * tel qu'il l'avait laissé.
+ * Le fichier de l'ancien format est repris par le ménage quotidien dès qu'une
+ * version datée existe. Une sauvegarde historique ne doit pas rester publique
+ * sans échéance ; le retour arrière relève d'une sauvegarde séparée et bornée.
  */
 async function rangerVersions(dossier: string, precedentes: Version[]) {
   const aJeter = precedentes.slice(1).map((v) => v.pathname);
@@ -264,6 +351,66 @@ async function rangerVersions(dossier: string, precedentes: Version[]) {
   } catch (erreur) {
     console.error(`Anciennes versions de ${dossier} non supprimées`, erreur);
   }
+}
+
+/**
+ * Une version précédente protège les lectures déjà parties vers le CDN, dont
+ * le cache peut vivre 24 heures. Passé ce délai elle n'a plus de finalité :
+ * le ménage quotidien la supprime, ainsi que l'ancien fichier non versionné.
+ *
+ * La version courante est toujours gardée, quel que soit son âge.
+ */
+const AGE_MIN_VERSION_MS = 24 * 60 * 60 * 1000;
+
+export type BilanPurgeVersions = {
+  supprimees: number;
+  echecs: number;
+};
+
+export async function purgerVersionsAnciennes(
+  dossiers: string[],
+): Promise<BilanPurgeVersions> {
+  if (!blobConfigure()) return { supprimees: 0, echecs: 0 };
+
+  const limite = Date.now() - AGE_MIN_VERSION_MS;
+  let supprimees = 0;
+  let echecs = 0;
+
+  for (const dossier of dossiers) {
+    try {
+      const versions = await listerVersions(dossier);
+      const aJeter = versions
+        .slice(1)
+        .filter((version) => version.uploadedAt.getTime() <= limite)
+        .map((version) => version.pathname);
+
+      // Transition de l'ancien format : il pouvait contenir une donnée retirée
+      // depuis longtemps. Il n'est effacé que si une version actuelle existe.
+      if (versions.length > 0) {
+        const cheminHerite = dossier + EXTENSION;
+        const page = await list({ prefix: cheminHerite });
+        if (page.blobs.some((blob) => blob.pathname === cheminHerite)) {
+          aJeter.push(cheminHerite);
+        }
+      }
+
+      for (const chemin of aJeter) {
+        try {
+          console.info("Purge d'une ancienne version : " + chemin);
+          await del(chemin);
+          supprimees += 1;
+        } catch (erreur) {
+          echecs += 1;
+          console.error("Ancienne version non supprimée : " + chemin, erreur);
+        }
+      }
+    } catch (erreur) {
+      echecs += 1;
+      console.error("Purge des versions impossible pour " + dossier, erreur);
+    }
+  }
+
+  return { supprimees, echecs };
 }
 
 export type ResultatSuppression = {
@@ -344,15 +491,4 @@ export async function listerImages(dossier: string): Promise<ImageStockee[]> {
   } while (curseur);
 
   return images;
-}
-
-/**
- * Vrai si l'URL désigne bien une image de notre store, dans le dossier attendu.
- * Les URLs viennent du navigateur : sans ce contrôle, n'importe quelle adresse
- * pourrait être enregistrée puis servie depuis nos pages.
- */
-export function estUrlBlob(url: string, dossier: string) {
-  return new RegExp(
-    `^https://[a-z0-9-]+\\.public\\.blob\\.vercel-storage\\.com/${dossier}/`,
-  ).test(url);
 }
