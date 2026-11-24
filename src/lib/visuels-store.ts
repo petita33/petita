@@ -1,10 +1,10 @@
 /**
- * Stockage des photos fixes de la page d'accueil sur Vercel Blob.
- * Même mécanique que les annonces : un seul JSON, versionné par ETag.
+ * Stockage des photos fixes de la page d'accueil sur Cloudflare R2.
+ * Même mécanique que les annonces : un seul JSON, une version par écriture.
  */
 
 import { unstable_cache } from "next/cache";
-import { ecrireJson, lireJson } from "./blob";
+import { ecrireJson, lireJson } from "./stockage";
 import { normaliserVisuels, type Visuels } from "./visuels";
 
 /** Dossier des versions successives du JSON, la plus récente faisant foi. */

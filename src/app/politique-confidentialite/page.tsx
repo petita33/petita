@@ -242,7 +242,12 @@ export default function PolitiqueConfidentialite() {
               <ul className={listClasses}>
                 <li>
                   <strong>Vercel Inc. (États-Unis)</strong> : hébergement,
-                  fonctions, journaux, stockage Blob, Analytics et Speed Insights.
+                  fonctions, journaux, Analytics et Speed Insights.
+                </li>
+                <li>
+                  <strong>Cloudflare (stockage R2, données stockées dans
+                  l’Union européenne)</strong> : stockage et diffusion des photos
+                  et du catalogue.
                 </li>
                 <li>
                   <strong>Plus Five Five, Inc., opérant Resend
@@ -255,7 +260,7 @@ export default function PolitiqueConfidentialite() {
                 </li>
               </ul>
               <p className="m-0">
-                Vercel et Resend annoncent des traitements aux États-Unis et
+                Vercel, Cloudflare et Resend annoncent des traitements aux États-Unis et
                 auprès de sous-traitants situés dans plusieurs pays. Leurs accords
                 de traitement intègrent les clauses contractuelles types de la
                 Commission européenne pour les transferts qui les nécessitent.

@@ -162,11 +162,11 @@ export function emplacementsDeLaSection(section: SectionId) {
   );
 }
 
-/** Le dossier du store Blob où atterrissent ces photos. */
+/** Le dossier du bucket R2 où atterrissent ces photos. */
 export const DOSSIER_VISUELS = "visuels";
 
 export type Visuel = {
-  /** URL Vercel Blob de la photo. */
+  /** URL publique R2 de la photo. */
   url: string;
   /** Texte lu par les lecteurs d'écran. Vide = `altParDefaut`. */
   alt: string;

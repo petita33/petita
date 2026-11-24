@@ -1,6 +1,7 @@
 /**
- * Identité du store Vercel Blob : quel hôte sert nos objets, et quelles URLs
- * viennent réellement de chez nous.
+ * Identité du stockage Cloudflare R2 : quelle adresse sert nos objets au
+ * public, quel point d'accès reçoit les envois, et quelles URLs viennent
+ * réellement de chez nous.
  *
  * Ce module ne dépend de rien — ni SDK, ni Node — pour rester importable aussi
  * bien depuis une Server Action que depuis `next.config.ts`, où la liste des
@@ -8,43 +9,71 @@
  */
 
 /**
- * L'identifiant du store, tel que le SDK le déduit lui aussi :
- * `BLOB_READ_WRITE_TOKEN` a la forme `vercel_blob_rw_<store>_<secret>`, et
- * `BLOB_STORE_ID` la forme `store_<store>`.
+ * L'origine publique du bucket, sans barre finale : le domaine personnalisé
+ * relié au bucket dans Cloudflare (`R2_PUBLIC_URL`), ou `null` s'il n'est pas
+ * configuré (développement local sans variables).
  */
-function identifiantStore() {
-  const depuisJeton = process.env.BLOB_READ_WRITE_TOKEN?.split("_")[3];
-  if (depuisJeton) return depuisJeton;
-  return process.env.BLOB_STORE_ID?.replace(/^store_/, "") || null;
+export function originePublique() {
+  const brut = process.env.R2_PUBLIC_URL?.trim();
+  if (!brut) return null;
+  try {
+    return new URL(brut).origin;
+  } catch {
+    return null;
+  }
+}
+
+/** L'hôte exact qui sert nos objets publics, ou `null` s'il est inconnu. */
+export function hotePublic() {
+  const origine = originePublique();
+  return origine ? new URL(origine).hostname : null;
 }
 
 /**
- * L'hôte exact qui sert nos objets publics, ou `null` si aucune variable ne
- * permet de le déduire (développement local sans `vercel env pull`).
- *
- * Le SDK compose la même adresse à partir du même identifiant :
- * `https://<store>.public.blob.vercel-storage.com/<chemin>`.
+ * Le point d'accès S3 du compte R2 — celui qui reçoit les envois du
+ * navigateur. Seule l'origine compte : un `R2_ENDPOINT` copié avec le nom du
+ * bucket au bout reste valable.
  */
-export function hoteBlobPublic() {
-  const identifiant = identifiantStore();
-  return identifiant
-    ? `${identifiant.toLowerCase()}.public.blob.vercel-storage.com`
-    : null;
+export function pointAccesR2() {
+  const brut = process.env.R2_ENDPOINT?.trim();
+  if (!brut) return null;
+  try {
+    return new URL(brut).origin;
+  } catch {
+    return null;
+  }
 }
 
-/** Sert de repli quand l'hôte exact n'est pas déductible. */
-const HOTE_BLOB = /^[a-z0-9-]+\.public\.blob\.vercel-storage\.com$/;
+/** L'URL publique d'un objet du bucket. */
+export function urlPublique(chemin: string) {
+  const origine = originePublique();
+  if (!origine) throw new Error("R2_PUBLIC_URL est absent ou invalide.");
+  return `${origine}/${chemin}`;
+}
 
 /**
- * Vrai si l'URL désigne bien un objet de notre store, dans le dossier attendu.
+ * Le chemin d'un objet dans le bucket, déduit de son URL publique, ou `null`
+ * si l'URL n'est pas l'une des nôtres.
+ */
+export function cheminDepuisUrl(url: string) {
+  const origine = originePublique();
+  if (!origine || !url.startsWith(`${origine}/`)) return null;
+  return url.slice(origine.length + 1);
+}
+
+/**
+ * Vrai si l'URL désigne bien un objet de notre bucket, dans le dossier attendu.
  *
  * Les URLs viennent du navigateur : sans ce contrôle, n'importe quelle adresse
- * pourrait être enregistrée puis servie depuis nos pages. Un store voisin — un
- * autre projet Vercel, celui d'un tiers — est refusé comme le reste dès que
- * l'hôte attendu est connu, et le dossier est comparé en entier : `annonces`
- * n'accepte pas `annonces-bis/`, ni un chemin qui remonte ailleurs.
+ * pourrait être enregistrée puis servie depuis nos pages. Tant que l'origine
+ * publique n'est pas configurée, rien n'est accepté. Le dossier est comparé en
+ * entier : `annonces` n'accepte pas `annonces-bis/`, ni un chemin qui remonte
+ * ailleurs.
  */
-export function estUrlBlob(url: string, dossier: string) {
+export function estUrlStockee(url: string, dossier: string) {
+  const attendu = hotePublic();
+  if (!attendu) return false;
+
   let cible: URL;
   try {
     cible = new URL(url);
@@ -56,11 +85,7 @@ export function estUrlBlob(url: string, dossier: string) {
   // Un paramètre de requête ne sert à rien sur un objet public et brouillerait
   // les comparaisons d'URL comme les clés de cache.
   if (cible.search !== "" || cible.hash !== "") return false;
-
-  const attendu = hoteBlobPublic();
-  if (attendu ? cible.hostname !== attendu : !HOTE_BLOB.test(cible.hostname)) {
-    return false;
-  }
+  if (cible.hostname !== attendu || cible.port !== "") return false;
 
   // `URL` a déjà résolu les `..` ; restent les doubles séparateurs, qu'elle
   // conserve tels quels et qui désigneraient un autre objet que celui lu ici.

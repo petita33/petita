@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "empreinte-mot-de-passe": "node scripts/empreinte-mot-de-passe.mjs"
+    "empreinte-mot-de-passe": "node scripts/empreinte-mot-de-passe.mjs",
+    "migrer-vers-r2": "node --env-file=.env scripts/migrer-vers-r2.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1161.0",
+    "@aws-sdk/s3-request-presigner": "^3.1161.0",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/blob": "^2.7.0",
     "@vercel/speed-insights": "^2.0.0",
     "next": "^16.3.0",
     "react": "19.2.4",
@@ -24,6 +26,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vercel/blob": "^2.8.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",

@@ -55,14 +55,14 @@ Utiliser une adresse e-mail de test pour répéter cette recherche chaque année
 | Journaux Vercel | Rechercher uniquement si la demande fournit une date/heure et si l'identification est possible sans collecter davantage ; les fenêtres sont courtes. |
 | Anti-abus applicatif | Les empreintes sont salées par instance, non réversibles et expirent sous 30 minutes : Atelier Petita ne peut normalement pas les rattacher à une personne. |
 | Web Analytics/Speed Insights | Les interfaces fournissent des statistiques anonymes sans identifiant individuel accessible à Atelier Petita ; expliquer qu'aucune donnée propre à la personne ne peut être isolée, exportée ou supprimée. |
-| Vercel Blob/catalogue | Vérifier textes, descriptions et images si la personne indique le contenu public concerné ; retirer le contenu actif et contrôler la purge des versions/orphelins. |
+| Cloudflare R2/catalogue | Vérifier textes, descriptions et images si la personne indique le contenu public concerné ; retirer le contenu actif et contrôler la purge des versions/orphelins. |
 | Dossiers commerciaux privés | Rechercher devis, commandes, factures et preuves séparées ; appliquer les obligations légales avant effacement. |
 
 ## 4. Décider et exécuter
 
 1. Réunir les résultats sans les copier dans un outil non inventorié.
 2. Appliquer le droit dans chaque source et chez chaque destinataire pertinent.
-3. Pour un effacement Blob, retirer d'abord la référence active, lancer ou
+3. Pour un effacement R2, retirer d'abord la référence active, lancer ou
    attendre le cron, puis vérifier le bilan versions et images.
 4. Pour une rectification ou un effacement, informer les destinataires auxquels
    les données ont été communiquées, sauf impossibilité ou effort

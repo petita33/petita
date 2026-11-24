@@ -160,7 +160,7 @@ export function normaliserCategorie(valeur: unknown): Categorie {
   return CATEGORIES_ORDRE[0];
 }
 
-/** Le dossier du store Blob où atterrissent les photos des annonces. */
+/** Le dossier du bucket R2 où atterrissent les photos des annonces. */
 export const DOSSIER_ANNONCES = "annonces";
 
 export type Annonce = {
@@ -170,7 +170,7 @@ export type Annonce = {
   description: string;
   /** En euros. `null` quand aucun prix n'est affiché. */
   prix: number | null;
-  /** URLs Vercel Blob, dans l'ordre d'affichage. La première sert de vignette. */
+  /** URLs publiques R2, dans l'ordre d'affichage. La première sert de vignette. */
   images: string[];
   /**
    * Proportions du cadre dans lequel les photos sont montrées, partout sur le

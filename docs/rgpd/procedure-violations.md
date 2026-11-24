@@ -12,7 +12,7 @@ technique sensible ne doit être commité dans ce dépôt.
 
 ## 1. Signaler et contenir immédiatement
 
-Exemples : boîte mail compromise, clé Resend ou Blob exposée, cookie
+Exemples : boîte mail compromise, clé Resend ou R2 exposée, cookie
 administrateur volé, publication accidentelle d'une photo personnelle, accès
 indu aux journaux, suppression ou altération de données, message envoyé au
 mauvais destinataire.

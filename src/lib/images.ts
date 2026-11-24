@@ -1,10 +1,10 @@
 /**
- * Le contrat des photos envoyées au store : types acceptés, forme du chemin,
+ * Le contrat des photos envoyées au bucket : types acceptés, forme du chemin,
  * et vérification que le contenu déposé est bien une image.
  *
  * Ce fichier ne fait aucun accès réseau à l'import : il est partagé entre le
- * navigateur, qui compose le chemin d'envoi, et le serveur, qui refuse tout ce
- * qui s'en écarte. Une seule règle, écrite une fois.
+ * navigateur, qui annonce le dossier et le type de son envoi, et le serveur,
+ * qui compose le chemin et refuse tout ce qui s'écarte de ces règles.
  */
 
 /** Les seuls types acceptés, avec l'extension qui leur correspond. */
@@ -25,7 +25,7 @@ export function estTypeImage(valeur: unknown): valeur is TypeImage {
   return typeof valeur === "string" && valeur in TYPES_IMAGE;
 }
 
-/** Les deux seuls dossiers d'images du store. */
+/** Les deux seuls dossiers d'images du bucket. */
 export const DOSSIERS_IMAGES = ["annonces", "visuels"] as const;
 
 export type DossierImages = (typeof DOSSIERS_IMAGES)[number];
@@ -42,31 +42,11 @@ export function estDossierImages(valeur: unknown): valeur is DossierImages {
  *
  * Le nom est tiré au sort, jamais dérivé du fichier choisi. Rien de ce que la
  * patronne a sur son téléphone — nom du cliché, chemin, accents, séparateurs —
- * ne se retrouve dans une URL publique, et rien de ce que composerait un client
- * modifié ne peut désigner autre chose qu'un objet neuf de ces deux dossiers.
+ * ne se retrouve dans une URL publique. Tiré côté serveur, il ne peut désigner
+ * qu'un objet neuf de ces deux dossiers.
  */
 export function cheminUpload(dossier: DossierImages, type: TypeImage) {
   return `${dossier}/${crypto.randomUUID()}.${TYPES_IMAGE[type]}`;
-}
-
-const CHEMIN_UPLOAD =
-  /^(annonces|visuels)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp|avif)$/;
-
-const TYPE_DE_EXTENSION: Record<string, TypeImage> = {
-  jpg: "image/jpeg",
-  png: "image/png",
-  webp: "image/webp",
-  avif: "image/avif",
-};
-
-/**
- * Le type qu'annonce un chemin d'envoi, ou `null` si le chemin ne respecte pas
- * la convention. Sert au serveur à n'autoriser, pour le jeton qu'il émet, que
- * le seul type cohérent avec l'extension demandée.
- */
-export function typeDuCheminUpload(chemin: string): TypeImage | null {
-  const correspondance = CHEMIN_UPLOAD.exec(chemin);
-  return correspondance ? TYPE_DE_EXTENSION[correspondance[2]] : null;
 }
 
 /** Vrai si l'URL se termine par une extension d'image acceptée. */
@@ -112,9 +92,9 @@ const SIGNATURES: Array<{ type: TypeImage; reconnait: (o: Uint8Array) => boolean
 const ENTETE_OCTETS = 32;
 
 /**
- * Le type réel d'un objet du store, lu dans ses premiers octets.
+ * Le type réel d'un objet du bucket, lu dans ses premiers octets.
  *
- * `undefined` signale que le contrôle n'a pas pu avoir lieu (store injoignable,
+ * `undefined` signale que le contrôle n'a pas pu avoir lieu (bucket injoignable,
  * réponse inattendue) : ce n'est pas un refus, et l'appelant ne doit pas
  * bloquer une saisie déjà valide pour une panne réseau.
  */

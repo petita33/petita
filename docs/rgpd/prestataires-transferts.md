@@ -9,13 +9,31 @@ Ce document est un inventaire de pilotage. Une page web fournisseur ne prouve
 pas que le contrat s'applique au compte Atelier Petita : la preuve est la
 version acceptée, reliée au bon compte et au bon forfait.
 
+## Cloudflare (R2)
+
+| Élément | État à documenter |
+|---|---|
+| Entité | Cloudflare, Inc., États-Unis ; Cloudflare Ltd pour les clients de l'EEE selon le contrat applicable. |
+| Services | Stockage R2 des photos publiées et du catalogue (annonces, visuels), diffusion des photos par le domaine public du bucket. |
+| Données | Photos publiées et leurs éventuelles métadonnées résiduelles ; textes du catalogue ; adresse IP et métadonnées techniques des requêtes de lecture et d'envoi. |
+| Rôle | Sous-traitant pour les contenus stockés selon le DPA Cloudflare. |
+| Lieux | Bucket à créer avec la juridiction **UE** : les objets sont alors stockés dans l'Union. La diffusion par le réseau Cloudflare et le support peuvent impliquer d'autres pays. |
+| Garanties annoncées | DPA incorporé aux conditions, clauses contractuelles types, certification Data Privacy Framework. |
+| Point bloquant | Confirmer la juridiction UE du bucket et archiver le DPA accepté par le compte. |
+| Preuves privées à archiver | DPA, capture de la juridiction du bucket, liste des sous-traitants, jetons d'API existants et leur portée. |
+
+Sources officielles :
+
+- [DPA Cloudflare](https://www.cloudflare.com/cloudflare-customer-dpa/)
+- [Juridictions R2](https://developers.cloudflare.com/r2/reference/data-location/)
+
 ## Vercel
 
 | Élément | État à documenter |
 |---|---|
 | Entité | Vercel Inc., États-Unis. |
-| Services | Hébergement Next.js, fonctions, journaux, Blob, Web Analytics et Speed Insights. |
-| Données | Requêtes et métadonnées techniques ; contenus Blob ; points anonymes d'audience/performance des pages publiques ; données du compte administrateur. |
+| Services | Hébergement Next.js, fonctions, journaux, Web Analytics et Speed Insights. |
+| Données | Requêtes et métadonnées techniques ; points anonymes d'audience/performance des pages publiques ; données du compte administrateur. |
 | Rôle | Sous-traitant pour les données client selon le contrat applicable ; responsable distinct pour certaines données générées par le service selon son DPA. |
 | Lieux | Traitement principal annoncé aux États-Unis et chez les sous-traitants listés par Vercel. |
 | Garanties annoncées | DPA et clauses contractuelles types 2021 ; mesures complémentaires et contrats avec les sous-traitants. |

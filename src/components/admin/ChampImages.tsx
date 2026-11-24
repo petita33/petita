@@ -16,8 +16,8 @@ type EnvoiEnCours = {
 };
 
 /**
- * Sélecteur de photos : compresse puis envoie chaque fichier directement à
- * Vercel Blob, et expose les URLs obtenues dans un champ caché `images`.
+ * Sélecteur de photos : compresse puis envoie chaque fichier directement au
+ * bucket R2, et expose les URLs obtenues dans un champ caché `images`.
  *
  * Le format choisi vaut pour toutes les photos de l'annonce — les aperçus
  * ci-dessous montrent exactement le cadre qu'aura le site.
