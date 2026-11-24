@@ -26,7 +26,8 @@ export async function lireInstantaneVisuels(): Promise<InstantaneVisuels> {
  * mêmes raisons de coût — voir `annonces-store.ts`. */
 const lireVisuelsMisEnCache = unstable_cache(
   async () => (await lireInstantaneVisuels()).visuels,
-  ["visuels-publics"],
+  // Clé liée au stockage, pour la même raison que dans `annonces-store.ts`.
+  ["visuels-publics-r2"],
   { tags: [TAG_VISUELS], revalidate: false },
 );
 

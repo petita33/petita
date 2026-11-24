@@ -117,7 +117,10 @@ function normaliserAnnonces(contenu: unknown): Annonce[] {
  */
 const lireAnnoncesMisesEnCache = unstable_cache(
   async () => (await lireInstantane()).annonces,
-  ["annonces-publiques"],
+  // La clé porte le nom du stockage : une entrée mise en cache du temps de
+  // Vercel Blob — restaurée avec le cache de build — citerait des URLs que
+  // `next.config.ts` n'autorise plus, et ferait échouer le build.
+  ["annonces-publiques-r2"],
   { tags: [TAG_ANNONCES], revalidate: false },
 );
 
