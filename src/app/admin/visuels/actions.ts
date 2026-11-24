@@ -2,11 +2,11 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { after } from "next/server";
-import { supprimerImages } from "@/lib/blob";
+import { supprimerImages } from "@/lib/stockage";
 import { balayerImagesOrphelines } from "@/lib/menage";
 import { estFormat } from "@/lib/formats";
 import { extensionAcceptee, imagesInvalides } from "@/lib/images";
-import { estUrlBlob } from "@/lib/store";
+import { estUrlStockee } from "@/lib/store";
 import { DOSSIER_VISUELS, estEmplacement, type Visuels } from "@/lib/visuels";
 import {
   ecrireVisuels,
@@ -43,7 +43,7 @@ export async function enregistrerVisuel(
   const format = estFormat(formatBrut) ? formatBrut : undefined;
 
   if (!estEmplacement(emplacement)) return { erreur: "Emplacement inconnu." };
-  if (image !== "" && !(estUrlBlob(image, DOSSIER_VISUELS) && extensionAcceptee(image))) {
+  if (image !== "" && !(estUrlStockee(image, DOSSIER_VISUELS) && extensionAcceptee(image))) {
     return { erreur: "Cette photo n'a pas été envoyée correctement. Réessayez." };
   }
   if (alt.length > LIMITE_ALT) {

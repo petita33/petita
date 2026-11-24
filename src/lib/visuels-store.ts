@@ -1,10 +1,10 @@
 /**
- * Stockage des photos fixes de la page d'accueil sur Vercel Blob.
- * Même mécanique que les annonces : un seul JSON, versionné par ETag.
+ * Stockage des photos fixes de la page d'accueil sur Cloudflare R2.
+ * Même mécanique que les annonces : un seul JSON, une version par écriture.
  */
 
 import { unstable_cache } from "next/cache";
-import { ecrireJson, lireJson } from "./blob";
+import { ecrireJson, lireJson } from "./stockage";
 import { normaliserVisuels, type Visuels } from "./visuels";
 
 /** Dossier des versions successives du JSON, la plus récente faisant foi. */
@@ -26,7 +26,8 @@ export async function lireInstantaneVisuels(): Promise<InstantaneVisuels> {
  * mêmes raisons de coût — voir `annonces-store.ts`. */
 const lireVisuelsMisEnCache = unstable_cache(
   async () => (await lireInstantaneVisuels()).visuels,
-  ["visuels-publics"],
+  // Clé liée au stockage, pour la même raison que dans `annonces-store.ts`.
+  ["visuels-publics-r2"],
   { tags: [TAG_VISUELS], revalidate: false },
 );
 

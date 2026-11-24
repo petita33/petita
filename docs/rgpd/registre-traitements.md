@@ -91,7 +91,7 @@ sa mise en service.
 | Personnes | En principe aucune personne identifiée ; exceptionnellement auteur ou personne visible disposant des droits et de l'information requise. |
 | Données | Textes, prix, liens, photographies et descriptions alternatives ; aucune métadonnée EXIF ou nom original conservé après préparation. |
 | Base légale | Intérêt légitime à présenter l'activité ; contrat, autorisation ou consentement selon le contenu personnel éventuellement publié. |
-| Destinataires | Public, Atelier Petita et Vercel Blob. |
+| Destinataires | Public, Atelier Petita et Cloudflare (stockage R2). |
 | Transferts | Vercel : États-Unis et pays des sous-traitants. |
 | Conservation | Tant que le contenu est publié. Image retirée : suppression immédiate tentée, puis balayage quotidien des orphelines après 24 heures. Version précédente du JSON : purge quotidienne dès 24 heures. |
 | Mesures | UUID, dossier borné, validation de signature, décodage et réencodage WebP, retrait EXIF/GPS, limites dimensions/pixels, rappel sur les droits à l'image. |

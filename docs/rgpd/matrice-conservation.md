@@ -20,10 +20,10 @@ la durée et les personnes habilitées sont consignées.
 | Web Analytics | Vercel | Fenêtre du forfait : Hobby 1 mois, Pro 12 mois, Plus/Enterprise 24 mois ; le fournisseur indique pouvoir stocker plus longtemps pour un changement de forfait | Visite d'une page publique | Expiration fournisseur des statistiques agrégées ; aucun identifiant individuel accessible à Atelier Petita | Capture du forfait et demande écrite au fournisseur sur la durée résiduelle |
 | Speed Insights | Vercel | Hobby 7 jours, Pro 30 jours, Enterprise 90 jours | Mesure de performance sur 20 % des visites publiques | Expiration fournisseur des statistiques agrégées | Capture du forfait |
 | Cookie d'administration | Navigateur administrateur | 30 jours au maximum | Authentification | Expiration ou déconnexion | Test cookie |
-| Image publiée | Vercel Blob | Tant que la publication est utile | Retrait de l'annonce ou du visuel | Suppression immédiate tentée ; reprise par cron si échec | Journal action et bilan cron |
-| Image envoyée puis abandonnée | Vercel Blob | Au moins 24 h pour finir la saisie, puis jusqu'au prochain cron quotidien | Envoi sans publication | Balayage quotidien des orphelines | Bilan cron images |
-| Version précédente du catalogue | Vercel Blob | Au moins 24 h pour les lectures CDN, puis jusqu'au prochain cron quotidien | Écriture d'une nouvelle version | Purge quotidienne ; la version courante est toujours conservée | Bilan cron versions |
-| Ancien fichier de données non versionné | Vercel Blob | Jusqu'à la première purge après existence d'une version datée | Migration au format versionné | Purge quotidienne | Bilan cron versions |
+| Image publiée | Cloudflare R2 | Tant que la publication est utile | Retrait de l'annonce ou du visuel | Suppression immédiate tentée ; reprise par cron si échec | Journal action et bilan cron |
+| Image envoyée puis abandonnée | Cloudflare R2 | Au moins 24 h pour finir la saisie, puis jusqu'au prochain cron quotidien | Envoi sans publication | Balayage quotidien des orphelines | Bilan cron images |
+| Version précédente du catalogue | Cloudflare R2 | Au moins 24 h pour les lectures en cours, puis jusqu'au prochain cron quotidien | Écriture d'une nouvelle version | Purge quotidienne ; la version courante est toujours conservée | Bilan cron versions |
+| Ancien store Vercel Blob | Vercel Blob | Jusqu'à la vérification de la migration vers R2 | Bascule du site sur R2 | Suppression manuelle du store dans Vercel | Capture de la suppression |
 | Politique et registre | Git pour les modèles, espace privé pour les preuves signées | Durée de l'activité puis archivage probatoire défini | Nouvelle version ou fin d'activité | Conservation versionnée ; aucune donnée de demande/incident dans Git | Historique des versions |
 | Demande d'exercice d'un droit | Registre privé | Temps nécessaire au traitement, puis preuve minimale pendant 5 ans si nécessaire à la défense de droits ; à valider selon le contexte | Clôture de la demande | Supprimer pièces d'identité immédiatement après vérification ; réduire le registre aux dates, droit, décision et preuve d'envoi | Registre privé |
 | Registre des violations | Registre privé | 5 ans retenus comme règle interne, à réévaluer selon risques et prescriptions | Clôture de l'incident | Revue annuelle et destruction sécurisée à échéance | Registre privé |
@@ -37,11 +37,11 @@ Le premier jour ouvré de chaque mois :
    conservation séparée ;
 3. supprimer les conversations concernées et vider la corbeille selon le
    fonctionnement de la boîte ;
-4. vérifier le dernier bilan du cron Blob et traiter toute ligne en échec ;
+4. vérifier le dernier bilan du cron de ménage R2 et traiter toute ligne en échec ;
 5. noter dans le journal privé la date, le volume, l'opérateur et les anomalies,
    sans copier les noms, e-mails ou messages.
 
-La route planifiée renvoie un statut non réussi si le store n'est pas configuré
+La route planifiée renvoie un statut non réussi si le bucket n'est pas configuré
 ou si au moins une opération échoue. Une réponse `200` accompagnée des deux
 bilans constitue ainsi une preuve exploitable, pas seulement l'absence d'erreur
 visible.

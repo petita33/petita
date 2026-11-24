@@ -1,20 +1,20 @@
 import type { NextConfig } from "next";
-import { hoteBlobPublic } from "./src/lib/store";
+import { hotePublic, pointAccesR2 } from "./src/lib/store";
 
 const enDeveloppement = process.env.NODE_ENV === "development";
 /** Le bandeau de commentaires Vercel n'est injecté que sur les préversions. */
 const enPrevisualisation = process.env.VERCEL_ENV === "preview";
 
 /**
- * L'hôte exact de notre store, quand les variables permettent de le déduire.
- * À défaut — build sans jeton Blob — on retombe sur le motif générique plutôt
- * que de casser l'affichage des photos.
+ * Le domaine public du bucket R2. Sans `R2_PUBLIC_URL` au build, aucune photo
+ * distante n'est autorisée : mieux vaut des images absentes qu'un optimiseur
+ * ouvert à n'importe quel hôte.
  */
-const hoteBlob = hoteBlobPublic() ?? "*.public.blob.vercel-storage.com";
-const ORIGINE_BLOB = `https://${hoteBlob}`;
+const hotePhotos = hotePublic();
+const ORIGINE_PHOTOS = hotePhotos ? [`https://${hotePhotos}`] : [];
 
-/** L'API que le SDK Blob appelle depuis le navigateur pendant un envoi. */
-const API_BLOB = "https://vercel.com";
+/** Le point d'accès S3 qui reçoit les photos envoyées depuis l'admin. */
+const ENVOI_PHOTOS = pointAccesR2();
 
 /** Web Analytics et Speed Insights hors production, où ils sont servis par le site. */
 const MESURES = "https://va.vercel-scripts.com";
@@ -51,13 +51,13 @@ function politique({ admin }: { admin: boolean }) {
     ],
     "style-src": ["'self'", "'unsafe-inline'"],
     // `blob:` sert aux aperçus locaux d'une photo en cours d'envoi.
-    "img-src": ["'self'", "data:", "blob:", ORIGINE_BLOB],
+    "img-src": ["'self'", "data:", "blob:", ...ORIGINE_PHOTOS],
     "font-src": ["'self'"],
     "connect-src": [
       "'self'",
       MESURES,
-      // L'envoi direct d'une photo au store part de la page d'administration.
-      ...(admin ? [API_BLOB, ORIGINE_BLOB] : []),
+      // L'envoi direct d'une photo au bucket part de la page d'administration.
+      ...(admin && ENVOI_PHOTOS ? [ENVOI_PHOTOS] : []),
       ...(enDeveloppement ? ["ws:"] : []),
       ...(enPrevisualisation ? [BANDEAU_VERCEL, "wss://ws-us3.pusher.com"] : []),
     ],
@@ -90,13 +90,6 @@ const ENTETES_COMMUNS = [
 const nextConfig: NextConfig = {
   // `x-powered-by: Next.js` ne renseigne que l'attaquant sur ce qu'il attaque.
   poweredByHeader: false,
-  experimental: {
-    // Le store accepte les lectures séquentielles de prerender, mais protège
-    // ses fichiers JSON contre les rafales lancées par plusieurs workers.
-    cpus: 1,
-    staticGenerationMaxConcurrency: 1,
-    staticGenerationMinPagesPerWorker: 1000,
-  },
   async headers() {
     return [
       {
@@ -117,26 +110,18 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        // Les photos des annonces sont servies par notre store Vercel Blob, et
-        // par lui seul : sans cet hôte épinglé, l'optimiseur d'images accepterait
-        // de relayer le contenu de n'importe quel store public.
-        hostname: hoteBlob,
-        port: "",
-        pathname: "/annonces/**",
-        search: "",
-      },
-      {
-        protocol: "https",
-        // Les photos fixes de la page d'accueil, dans le même store.
-        hostname: hoteBlob,
-        port: "",
-        pathname: "/visuels/**",
-        search: "",
-      },
-    ],
+    // Les photos des annonces et de la page d'accueil sont servies par le
+    // domaine public de notre bucket, et par lui seul, dans ces deux dossiers :
+    // jamais le JSON de `donnees/`, jamais un autre hôte.
+    remotePatterns: hotePhotos
+      ? (["/annonces/**", "/visuels/**"] as const).map((pathname) => ({
+          protocol: "https" as const,
+          hostname: hotePhotos,
+          port: "",
+          pathname,
+          search: "",
+        }))
+      : [],
   },
 };
 

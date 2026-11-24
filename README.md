@@ -13,14 +13,15 @@ photos) et de choisir la page sur laquelle elles apparaissent :
 
 ### Mise en service
 
-1. Sur Vercel, onglet **Storage** du projet → créer un store **Blob** et le
-   relier au projet. `BLOB_READ_WRITE_TOKEN` est alors injecté automatiquement.
+1. Créer un bucket **Cloudflare R2**, lui relier un domaine personnalisé et
+   créer un jeton d'API limité à ce bucket (voir [docs/r2.md](./docs/r2.md)),
+   puis renseigner les variables `R2_*` dans le projet Vercel.
 2. Ajouter deux variables d'environnement au projet Vercel :
    - `ADMIN_PASSWORD` — le mot de passe de connexion à `/admin` ;
    - `ADMIN_SESSION_SECRET` — une clé aléatoire, via `openssl rand -base64 32`.
 3. En local : `vercel env pull .env.local` (voir `.env.example`).
 
-Sans store Blob configuré, les pages publiques s'affichent vides et
+Sans bucket R2 configuré, les pages publiques s'affichent vides et
 l'enregistrement d'une annonce renvoie un message d'erreur explicite.
 
 ## Conformité RGPD
@@ -34,14 +35,15 @@ secret ne doit être ajouté au dépôt.
 
 ### Fonctionnement
 
-- Les photos sont envoyées **depuis le navigateur** directement vers Vercel
-  Blob (`/api/admin/upload` ne délivre qu'un jeton), ce qui contourne la limite
-  de 4,5 Mo des fonctions serveur. Elles sont redimensionnées et converties en
-  WebP avant l'envoi.
-- Les annonces elles-mêmes vivent dans un seul JSON sur Blob
-  (`donnees/annonces.json`), lu en contournant le CDN pour qu'une publication
-  soit visible immédiatement. Les écritures sont conditionnées par l'ETag, donc
-  deux modifications simultanées ne peuvent pas s'écraser silencieusement.
+- Les photos sont envoyées **depuis le navigateur** directement vers R2
+  (`/api/admin/upload` ne délivre qu'une URL signée, valable une minute, pour
+  un chemin tiré au sort), ce qui contourne la limite de 4,5 Mo des fonctions
+  serveur. Elles sont redimensionnées et converties en WebP avant l'envoi.
+- Les annonces elles-mêmes vivent dans un JSON sur R2 (`donnees/annonces/`,
+  une version datée par enregistrement), lu par l'API S3 pour qu'une
+  publication soit visible immédiatement. Une écriture concurrente est
+  détectée, donc deux modifications simultanées ne peuvent pas s'écraser
+  silencieusement.
 - L'accès est protégé par un mot de passe unique et une session signée en
   cookie `httpOnly`. `src/proxy.ts` redirige les visiteurs non connectés, et
   **chaque** Server Action revérifie la session.

@@ -1,13 +1,13 @@
 /**
- * Stockage des annonces sur Vercel Blob.
+ * Stockage des annonces sur Cloudflare R2.
  *
  * Toutes les annonces tiennent dans un seul JSON ; la mécanique de lecture,
- * d'écriture et de contrôle de version vit dans `blob.ts`.
+ * d'écriture et de contrôle de version vit dans `stockage.ts`.
  */
 
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import { ecrireJson, lireJson } from "./blob";
+import { ecrireJson, lireJson } from "./stockage";
 import {
   identifiantDepuisSegmentAnnonce,
   normaliserCategorie,
@@ -111,15 +111,16 @@ function normaliserAnnonces(contenu: unknown): Annonce[] {
 /**
  * Aucune péremption dans le temps : `updateTag(TAG_ANNONCES)` est appelé par
  * chaque Server Action qui écrit, et c'est la seule chose qui puisse changer ce
- * catalogue. Une expiration à l'heure ne rafraîchissait donc rien — elle
- * relançait un `lireJson`, donc un `list()`, donc une opération avancée
- * facturable, vingt-quatre fois par jour pour retrouver le même contenu. À deux
- * jeux de données, cela consommait à soi seul les 2 000 opérations avancées du
- * forfait Hobby, sans qu'une seule annonce ait été publiée.
+ * catalogue. Une expiration à l'heure ne rafraîchirait donc rien — elle
+ * relancerait un `lireJson`, donc un `list()` facturé comme une opération de
+ * classe A, vingt-quatre fois par jour pour retrouver le même contenu.
  */
 const lireAnnoncesMisesEnCache = unstable_cache(
   async () => (await lireInstantane()).annonces,
-  ["annonces-publiques"],
+  // La clé porte le nom du stockage : une entrée mise en cache du temps de
+  // Vercel Blob — restaurée avec le cache de build — citerait des URLs que
+  // `next.config.ts` n'autorise plus, et ferait échouer le build.
+  ["annonces-publiques-r2"],
   { tags: [TAG_ANNONCES], revalidate: false },
 );
 

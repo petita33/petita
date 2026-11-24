@@ -1,10 +1,10 @@
 /**
- * Ramassage des photos orphelines du store Blob.
+ * Ramassage des photos orphelines du bucket R2.
  *
- * Une photo est envoyée au store dès que la patronne la choisit, bien avant
+ * Une photo est envoyée au bucket dès que la patronne la choisit, bien avant
  * qu'elle clique sur « Enregistrer ». Si elle quitte la page, retire la photo
  * d'une annonce pas encore publiée, ou en change deux fois d'affilée, le
- * fichier reste dans le store sans que rien ne le référence. Une suppression
+ * fichier reste dans le bucket sans que rien ne le référence. Une suppression
  * qui a échoué laisse le même genre de résidu.
  *
  * Ce balayage compare le contenu réel des dossiers d'images aux URLs citées
@@ -19,11 +19,11 @@ import {
   lireInstantane,
 } from "./annonces-store";
 import {
-  blobConfigure,
   listerImages,
   purgerVersionsAnciennes,
+  stockageConfigure,
   supprimerImages,
-} from "./blob";
+} from "./stockage";
 import { DOSSIER_VISUELS } from "./visuels";
 import {
   DOSSIER_DONNEES_VISUELS,
@@ -53,10 +53,10 @@ const RIEN: BilanBalayage = { supprimees: 0, ajournees: 0, echecs: 0 };
  * son échec ne doit pas remonter à l'écran de la patronne.
  */
 export async function balayerImagesOrphelines(): Promise<BilanBalayage> {
-  if (!blobConfigure()) return RIEN;
+  if (!stockageConfigure()) return RIEN;
 
   try {
-    // Lecture directe du store, sans passer par les versions mises en cache.
+    // Lecture directe du bucket, sans passer par les versions mises en cache.
     // Celles-ci n'expirent plus dans le temps : leur fraîcheur ne tient qu'à
     // l'`updateTag` des Server Actions. C'est très bien pour afficher le site —
     // au pire une page reste une seconde en retard — mais ici on décide de
@@ -66,7 +66,7 @@ export async function balayerImagesOrphelines(): Promise<BilanBalayage> {
     // ne peut restaurer. Cela corrige aussi le balayage lancé par `after()`
     // juste après un enregistrement, qui lisait l'état d'avant l'écriture.
     //
-    // Ces deux lectures lèvent si le store est en panne (par opposition à un
+    // Ces deux lectures lèvent si le bucket est en panne (par opposition à un
     // fichier encore inexistant, qui vaut « rien à référencer »). C'est ce qui
     // rend ce balayage sûr : sur panne, on n'arrive jamais ici avec une liste
     // vide qui ferait tout supprimer.

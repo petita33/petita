@@ -17,9 +17,9 @@ import {
   TAG_ANNONCES,
 } from "@/lib/annonces-store";
 import { normaliserFormat } from "@/lib/formats";
-import { supprimerImages } from "@/lib/blob";
+import { supprimerImages } from "@/lib/stockage";
 import { extensionAcceptee, imagesInvalides } from "@/lib/images";
-import { estUrlBlob } from "@/lib/store";
+import { estUrlStockee } from "@/lib/store";
 import { balayerImagesOrphelines } from "@/lib/menage";
 import {
   fermerSession,
@@ -81,10 +81,10 @@ function nettoyerImages(brut: FormDataEntryValue | null): string[] {
 
   return valeurs
     .filter((url): url is string => typeof url === "string")
-    // Le champ vient du client : seules sont retenues les photos de notre store,
+    // Le champ vient du client : seules sont retenues les photos de notre bucket,
     // dans le dossier des annonces, avec une extension d'image. Une URL d'un
-    // autre store — ou du dossier des données — n'entre pas dans le catalogue.
-    .filter((url) => estUrlBlob(url, DOSSIER_ANNONCES) && extensionAcceptee(url))
+    // autre hôte — ou du dossier des données — n'entre pas dans le catalogue.
+    .filter((url) => estUrlStockee(url, DOSSIER_ANNONCES) && extensionAcceptee(url))
     .slice(0, LIMITE_IMAGES);
 }
 

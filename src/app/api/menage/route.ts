@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { blobConfigure } from "@/lib/blob";
+import { stockageConfigure } from "@/lib/stockage";
 import { effectuerMenage } from "@/lib/menage";
 
-/** Le décompte doit refléter l'état du store, jamais une réponse mise en cache. */
+/** Le décompte doit refléter l'état du bucket, jamais une réponse mise en cache. */
 export const dynamic = "force-dynamic";
 
 /**
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
  *
  * Le ménage se déclenchait uniquement après un enregistrement : une photo
  * envoyée puis abandonnée alors que la patronne ne publie plus rien restait
- * indéfiniment dans le store — et sur la facture. Vercel appelle donc cette
+ * indéfiniment dans le bucket — et sur la facture. Vercel appelle donc cette
  * route une fois par jour (voir `vercel.json`) avec l'en-tête
  * `Authorization: Bearer $CRON_SECRET`, ce qui donne au nettoyage une échéance
  * qui ne dépend plus de l'activité.
@@ -28,9 +28,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Non configuré" }, { status: 503 });
   }
 
-  if (!blobConfigure()) {
+  if (!stockageConfigure()) {
     console.error(
-      "Store Blob absent : la purge planifiée ne peut pas vérifier les données.",
+      "Stockage R2 non configuré : la purge planifiée ne peut pas vérifier les données.",
     );
     return NextResponse.json({ error: "Store non configuré" }, { status: 503 });
   }

@@ -1,42 +1,85 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
-import { cheminUpload, type DossierImages } from "@/lib/images";
+import type { DossierImages } from "@/lib/images";
 import { preparerImage } from "./preparerImage";
 
-/** Tout ce qui sort de `preparerImage` est du WebP réencodé par le navigateur. */
-const TYPE_ENVOYE = "image/webp";
-
 /**
- * Le SDK client remplace le corps de nos réponses d'erreur par « Failed to
- * retrieve the client token ». On interroge la route pour retrouver la cause.
+ * `preparerImage` réencode en WebP, mais un navigateur qui ne sait pas
+ * l'écrire rend du PNG sans prévenir : on annonce le type réellement produit.
  */
-async function causeReelle(message: string) {
-  if (!/client token/i.test(message)) return message;
-  try {
-    const reponse = await fetch("/api/admin/upload");
-    if (reponse.status === 401) {
-      return "session expirée, reconnectez-vous puis réessayez";
-    }
-    if (reponse.status === 429) {
-      return "trop de photos envoyées coup sur coup, patientez quelques minutes";
-    }
-    const { raison } = (await reponse.json()) as { raison: string | null };
-    if (raison) return raison;
-  } catch {
-    // On retombe sur le message d'origine.
+function typeProduit(contenu: Blob) {
+  return contenu.type || "image/webp";
+}
+
+type Autorisation = {
+  urlEnvoi: string;
+  entetes: Record<string, string>;
+  url: string;
+};
+
+/** Demande au serveur une URL d'envoi signée pour ce fichier. */
+async function demanderAutorisation(
+  dossier: DossierImages,
+  type: string,
+  taille: number,
+): Promise<Autorisation> {
+  const reponse = await fetch("/api/admin/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dossier, type, taille }),
+  });
+  const corps = (await reponse.json().catch(() => null)) as
+    | (Autorisation & { error?: string })
+    | null;
+  if (!reponse.ok || !corps?.urlEnvoi) {
+    throw new Error(corps?.error ?? `le serveur a refusé l'envoi (HTTP ${reponse.status})`);
   }
-  return `${message} (détail dans les logs Vercel de /api/admin/upload)`;
+  return corps;
 }
 
 /**
- * Prépare une photo puis l'envoie directement à Vercel Blob, dans `dossier`.
+ * `fetch` ne sait pas suivre la progression d'un envoi : `XMLHttpRequest`,
+ * si. C'est elle qui fait avancer la barre sous la photo.
+ */
+function deposer(
+  { urlEnvoi, entetes }: Autorisation,
+  contenu: Blob,
+  onProgression: (pourcentage: number) => void,
+) {
+  return new Promise<void>((resoudre, rejeter) => {
+    const requete = new XMLHttpRequest();
+    requete.open("PUT", urlEnvoi);
+    for (const [nom, valeur] of Object.entries(entetes)) {
+      requete.setRequestHeader(nom, valeur);
+    }
+    requete.upload.onprogress = (evenement) => {
+      if (evenement.lengthComputable) {
+        onProgression((evenement.loaded / evenement.total) * 100);
+      }
+    };
+    requete.onload = () => {
+      if (requete.status >= 200 && requete.status < 300) {
+        onProgression(100);
+        resoudre();
+      } else {
+        console.error(`Dépôt refusé par le stockage (HTTP ${requete.status})`, requete.responseText);
+        rejeter(new Error(`le stockage a refusé la photo (HTTP ${requete.status})`));
+      }
+    };
+    // Coupure réseau, ou règle CORS du bucket absente : le navigateur ne dit
+    // pas lequel des deux.
+    requete.onerror = () =>
+      rejeter(new Error("la connexion au stockage a échoué, vérifiez le réseau puis réessayez"));
+    requete.send(contenu);
+  });
+}
+
+/**
+ * Prépare une photo puis l'envoie directement au bucket R2, dans `dossier`.
  * Renvoie son URL publique.
  *
  * Le nom du fichier d'origine est abandonné au passage : le chemin est tiré au
- * sort selon la convention que la route d'émission des jetons exige. Un nom de
- * cliché ne devient jamais une URL publique, et le serveur n'a jamais à faire
- * confiance à un chemin composé ici.
+ * sort par le serveur. Un nom de cliché ne devient jamais une URL publique.
  *
  * En cas d'échec, lève une erreur dont le message est déjà lisible par la
  * patronne : l'appelant n'a plus qu'à l'afficher.
@@ -46,18 +89,8 @@ export async function envoyerImage(
   dossier: DossierImages,
   onProgression: (pourcentage: number) => void,
 ): Promise<string> {
-  try {
-    const prepare = await preparerImage(fichier);
-
-    const resultat = await upload(cheminUpload(dossier, TYPE_ENVOYE), prepare, {
-      access: "public",
-      handleUploadUrl: "/api/admin/upload",
-      contentType: TYPE_ENVOYE,
-      onUploadProgress: ({ percentage }) => onProgression(percentage),
-    });
-
-    return resultat.url;
-  } catch (cause) {
-    throw new Error(await causeReelle((cause as Error).message));
-  }
+  const prepare = await preparerImage(fichier);
+  const autorisation = await demanderAutorisation(dossier, typeProduit(prepare), prepare.size);
+  await deposer(autorisation, prepare, onProgression);
+  return autorisation.url;
 }
